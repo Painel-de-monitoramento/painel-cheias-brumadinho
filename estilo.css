@@ -112,3 +112,30 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .rgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
 .rgrid div{background:rgba(255,255,255,.92);color:#111;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px}
 .rgrid b{display:block;font:700 22px "IBM Plex Sans Condensed",sans-serif;white-space:nowrap}
+.scen{display:inline-block;margin-left:14px;padding:3px 10px;border-radius:6px;background:#111;color:#fff;font:600 15px "IBM Plex Sans",sans-serif;vertical-align:middle}
+.simvis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.simvis h3{margin:0 0 6px}
+#bvSim{height:340px}
+@media(max-width:760px){.simvis{grid-template-columns:1fr}.scen{display:block;margin:6px 0 0}}
+.scen[hidden]{display:none}
+.leg span svg{vertical-align:middle;margin-right:4px}
+.lay label{display:inline-flex;align-items:center;gap:6px;font-size:13px;margin-right:14px;cursor:pointer}
+.lay input{width:16px;height:16px}
+.map .ml{paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.leg i.sq{background:#111!important}
+.tempos{width:100%;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:#555;margin-top:4px}
+.bn-s{font-size:13px;margin-top:6px;opacity:.95}
+.chip.nd{background:#e3e8eb;color:#333}
+.src{display:inline-block;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-right:4px;background:#e3e8eb;color:#111}
+.src.s-medicao{background:#1f6fb2;color:#fff}.src.s-misto{background:#5aa0d6;color:#fff}.src.s-modelo{background:#c6dcef;color:#111}
+.zbt{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.zoom{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.zoom button{border:0;background:#fff;padding:6px 10px;font:500 13px "IBM Plex Sans",sans-serif;cursor:pointer;border-right:1px solid var(--line)}
+.zoom button:last-child{border-right:0}.zoom button.on{background:#111;color:#fff}
+.kpi b.old{color:#8a99a3;text-decoration:line-through}
+.ind small{color:#555;font-weight:400}
+.rg small{color:#555;font-weight:400}
+.rg tr.velho td{color:#8a99a3}
+.pbar{position:relative;height:12px;background:#eceff1;border-radius:6px;min-width:140px;margin-bottom:3px}
+.pbar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.pbar s{position:absolute;top:-3px;bottom:-3px;width:2px;background:#111}
