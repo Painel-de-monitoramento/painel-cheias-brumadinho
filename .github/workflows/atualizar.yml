@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['index.html', 'coletor.py', '.github/workflows/atualizar.yml']
+    paths: ['index.html', 'simulador.html', 'estilo.css', 'historico.json', 'coletor.py', '.github/workflows/atualizar.yml']
 
 permissions:
   contents: write
@@ -40,7 +40,7 @@ jobs:
           git pull --rebase -X ours || true
           git push || true
       - name: Montar site
-        run: mkdir -p _site && cp index.html data.json _site/
+        run: mkdir -p _site && cp index.html simulador.html estilo.css data.json historico.json _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
