@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['index.html', 'simulador.html', 'estilo.css', 'aovivo.js', 'historico.json', 'coletor.py', '.github/workflows/atualizar.yml']
+    paths: ['index.html', 'simulador.html', 'estilo.css', 'aovivo.js', 'motor.js', 'motor.py', 'historico.json', 'reguas.json', 'coletor.py', 'validar.py', 'testes/**', '.github/workflows/atualizar.yml']
 
 permissions:
   contents: write
@@ -29,20 +29,48 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Coletar telemetria da ANA e chuva
-        run: python coletor.py data.json
-      - name: Salvar dados no repositório
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Testes de aceitação e paridade do motor de decisão
+        run: if [ -d testes ]; then python -m unittest discover -s testes -v; else echo "pasta testes ausente"; fi
+      - name: Coletar telemetria e chuva
+        id: coleta
+        continue-on-error: true
+        env:
+          ANA_HIDRO_USUARIO: ${{ secrets.ANA_HIDRO_USUARIO }}
+          ANA_HIDRO_SENHA: ${{ secrets.ANA_HIDRO_SENHA }}
         run: |
-          git config user.name "painel-cheias"
-          git config user.email "painel-cheias@users.noreply.github.com"
-          git add data.json tel_cache.json modelo_hist.json
-          git diff --cached --quiet || git commit -m "Dados $(TZ=America/Sao_Paulo date '+%d/%m %H:%M')"
-          git pull --rebase -X ours || true
-          git push || true
+          cp data.json /tmp/data_anterior.json
+          for i in 1 2; do
+            python coletor.py /tmp/data_novo.json && python validar.py /tmp/data_novo.json && mv /tmp/data_novo.json data.json && exit 0
+            echo "::warning::Tentativa $i da coleta falhou"; sleep 30
+          done
+          exit 1
+      - name: Manter o último snapshot válido
+        if: steps.coleta.outcome == 'failure'
+        run: |
+          cp /tmp/data_anterior.json data.json
+          echo "::error::Coleta falhou; publicado o último data.json válido. O painel exibirá a idade dos dados."
       - name: Montar site
-        run: mkdir -p _site && cp index.html simulador.html estilo.css aovivo.js data.json historico.json _site/
+        run: |
+          python validar.py data.json
+          mkdir -p _site && cp index.html simulador.html estilo.css motor.js aovivo.js data.json historico.json reguas.json _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
       - id: deploy
         uses: actions/deploy-pages@v4
+      - name: Salvar dados e estado no repositório
+        if: steps.coleta.outcome == 'success'
+        run: |
+          git config user.name "painel-cheias"
+          git config user.email "painel-cheias@users.noreply.github.com"
+          git add data.json tel_cache.json modelo_hist.json estado.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Dados $(TZ=America/Sao_Paulo date '+%d/%m %H:%M')"
+          for i in 1 2 3; do
+            git pull --rebase -X ours && git push && exit 0
+            echo "::warning::Push falhou (tentativa $i)"; sleep $((i*10))
+          done
+          echo "::error::Não foi possível gravar os dados no repositório"; exit 1
