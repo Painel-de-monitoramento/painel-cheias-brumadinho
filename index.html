@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilo.css">
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="motor.js"></script>
 <script src="aovivo.js"></script>
 </head>
 <body>
@@ -15,11 +16,12 @@
  <h1>Monitoramento de cheias do Rio Paraopeba em Brumadinho/MG</h1>
  <nav class="tabs"><a class="on" href="index.html">Painel em tempo real</a><a href="simulador.html">Simulador e tendências</a></nav>
  <div class="upd"><span class="dot" id="dot"></span><span id="upd">Carregando dados</span><button id="btnUpd" type="button">Atualizar</button></div>
+ <div class="tempos" id="tempos"></div>
 </div></header>
 
 <section class="banner" id="banner">
  <div class="wrap">
-  <div class="bn-l"><div class="bn-k">Nível de controle da sede</div><div class="bn-v" id="bnV">...</div><div class="bn-t" id="bnT"></div></div>
+  <div class="bn-l"><div class="bn-k">Nível de controle da sede</div><div class="bn-v" id="bnV">...</div><div class="bn-t" id="bnT"></div><div class="bn-s" id="bnS"></div></div>
   <ol class="steps" id="steps"><li>Normal</li><li>Atenção</li><li>Alerta</li><li>Alerta máximo</li><li>Emergência</li></ol>
  </div>
 </section>
@@ -49,23 +51,34 @@
   <p class="note">Cor de cada zona conforme o nível indicado pela chuva acumulada em 5 dias</p>
   <svg class="map" id="map" role="img" aria-label="Mapa das zonas de chuva"></svg>
   <div class="leg" id="leg"></div>
+  <div class="leg lay" id="lay"><label><input type="checkbox" data-l="F" checked>Fluviométricas</label><label><input type="checkbox" data-l="P" checked>Pluviométricas</label><label><input type="checkbox" data-l="M" checked>Meteorológica</label></div>
+  <p class="note">Marcadores cheios indicam estações telemétricas (transmissão automática); vazados, estações convencionais. Inventário da rede hidrometeorológica da ANA (HidroWeb) restrito às estações em operação na bacia.</p>
  </div>
 </section>
 
 <section>
  <h2>Chuva acumulada por zona</h2>
- <p class="note">Ponteiro na chuva de 5 dias em relação aos limites de cada nível. No gráfico, barras de chuva diária observada (escuras) e prevista (claras) e a curva da chuva móvel de 5 dias.</p>
+ <p class="note">Ponteiro na chuva de 5 dias em relação aos limites de cada nível. No gráfico, chuva diária medida por pluviômetro (azul escuro), estimada por modelo ou mista onde faltou medição (azul médio, hachurada) e prevista (azul claro), com a curva da chuva móvel de 5 dias. Dias sem dado ficam em branco e interrompem a curva.</p>
  <div class="zones" id="zones"></div>
 </section>
 
 <section>
- <div class="hd"><div><h2>Régua de Alberto Flores</h2><p class="note">Estação ANA 40740000, 5 km a montante do Centro, régua de referência das enchentes históricas</p></div><button type="button" class="fit" aria-pressed="false">Ampliar escala aos dados</button></div>
+ <div class="hd"><div><h2>Régua de Alberto Flores</h2><p class="note">Estação ANA 40740000, 5 km a montante do Centro, régua de referência das enchentes históricas</p></div><div class="zbt"><button type="button" class="fit" aria-pressed="false">Ampliar escala aos dados</button><span class="zoom"><button type="button" data-z="24">24 h</button><button type="button" data-z="72">72 h</button><button type="button" data-z="168">7 dias</button><button type="button" data-z="720" class="on">30 dias</button></span></div></div>
  <div class="two"><svg class="regua" id="regua" role="img" aria-label="Régua com níveis de controle"></svg><div class="fig tall" id="gAF"></div></div>
 </section>
 
 <section>
- <div class="hd"><div><h2>Vazão em Belo Vale</h2><p class="note">Estação 40710001, 77 km a montante, com chegada do pico a Brumadinho de 12 a 24 horas depois</p></div><button type="button" class="fit" aria-pressed="false">Ampliar escala aos dados</button></div>
+ <div class="hd"><div><h2>Vazão em Belo Vale</h2><p class="note">Estação 40710001, 77 km a montante, com chegada do pico a Brumadinho de 12 a 24 horas depois</p></div><div class="zbt"><button type="button" class="fit" aria-pressed="false">Ampliar escala aos dados</button><span class="zoom"><button type="button" data-z="24">24 h</button><button type="button" data-z="72">72 h</button><button type="button" data-z="168">7 dias</button><button type="button" data-z="720" class="on">30 dias</button></span></div></div>
  <div class="fig tall" id="gBV"></div>
+</section>
+
+<section>
+ <h2>Réguas ao longo do trecho</h2>
+ <p class="note">Estações telemétricas com régua nas zonas Z2 e Z3, de montante para jusante. A cota de cada régua tem zero próprio, por isso a comparação é feita com o histórico da própria estação: as cheias de janeiro de 2020 e de 2022 e a maior cota registrada pela telemetria. A Z1 não tem régua telemétrica em operação.</p>
+ <div class="scroll"><table class="rg"><thead><tr><th>Estação</th><th>Zona</th><th>Cota e vazão agora</th><th>Variação 24 h</th><th>Cheia 2020</th><th>Cheia 2022</th><th>Maior registrada</th><th>Posição entre rio baixo e maior cheia</th></tr></thead><tbody id="tbRg"></tbody></table></div>
+ <h3>Últimos 10 dias na mesma escala</h3>
+ <p class="note">Cada régua é expressa em porcentagem da subida entre o rio baixo (0%, cota de estiagem da estação) e a maior cheia registrada (100%). Assim estações com zeros diferentes ficam comparáveis. Uma onda de cheia aparece primeiro nas estações de montante (Z2) e chega depois a Belo Vale e Alberto Flores. Os traços na barra da tabela marcam onde ficaram as cheias de 2020 e 2022.</p>
+ <div class="fig tall" id="gRg"></div>
 </section>
 
 <section>
@@ -80,7 +93,7 @@
 
 <section>
  <h2>Estações telemétricas</h2>
- <div class="scroll"><table class="stack"><thead><tr><th>Estação</th><th>Código</th><th>Zona</th><th>Última leitura</th><th>Nível (m)</th><th>Vazão (m³/s)</th><th>Chuva 24 h (mm)</th><th>Situação</th></tr></thead><tbody id="tbEst"></tbody></table></div>
+ <div class="scroll"><table class="stack"><thead><tr><th>Estação</th><th>Código</th><th>Zona</th><th>Última leitura</th><th>Nível (m)</th><th>Vazão (m³/s)</th><th>Chuva 24 h (mm)</th><th>Cobertura 24 h</th><th>Situação</th></tr></thead><tbody id="tbEst"></tbody></table></div>
 </section>
 
 <section class="crit">
@@ -98,7 +111,9 @@
  <h3>Correção pela umidade do solo</h3>
  <p>O solo é considerado úmido quando a vazão média do dia anterior em Alberto Flores supera 90 m³/s ou quando a chuva acumulada em 30 dias na bacia supera 370 mm. Nessa condição, a parcela da chuva convertida em escoamento aumenta, e todos os limites de chuva são reduzidos em 30 mm.</p>
  <h3>Rebaixamento de nível</h3>
- <p>A sede só retorna a um nível inferior quando todos os indicadores estão abaixo do limite do nível vigente e a cota em Alberto Flores está em descida contínua há pelo menos 12 horas.</p>
+ <p>A sede só retorna a um nível inferior quando todos os indicadores têm dado válido, estão abaixo do limite do nível vigente e a cota em Alberto Flores está em descida contínua, sem lacuna na série horária, há pelo menos 12 horas. A elevação é imediata. Cada mudança de nível é registrada com horário e causa. O nível oficial é calculado pelo servidor de coleta; a leitura ao vivo no navegador pode apenas antecipar uma elevação, nunca rebaixar o nível.</p>
+ <h3>Dados ausentes</h3>
+ <p>Leitura ausente nunca é tratada como zero. A régua e Belo Vale são considerados válidos quando a última leitura tem até 3 horas. A chuva de cada janela (24 h, 72 h, 5 dias e 30 dias) é somada apenas nas horas com dado e acompanhada da cobertura, isto é, da fração de horas com dado. Um valor parcial que já atinge um limite aciona o nível, pois a chuva real é no mínimo igual à somada. Sem leitura válida da régua e de Belo Vale e sem indicador acionado, o nível é indeterminado, e não Normal. A umidade do solo é indeterminada quando nenhum critério comprova solo úmido e falta um dos dois dados; nesse caso são mantidos os limites de solo normal e o fato é sinalizado no painel.</p>
  <h3>Desempenho da regra</h3>
  <p>Aplicada às enchentes de 1964 a 2026, a regra acionou o nível de Atenção de 2 a 3 dias antes do pico em todos os eventos e, nas maiores enchentes (1997 e 2008), antecipou o nível máximo em 1 a 2 dias em relação à régua isolada. A taxa de falso alarme é de cerca de um acionamento de Atenção a cada 7 anos.</p>
 </section>
@@ -107,6 +122,7 @@
 
 <script>
 {
+const INV=[["40338000",305.6,223.0,"Ribeirão Da Passagem","F",0,"IGAM-MG"],["40338100",286.9,171.9,"Bairro Pires E Congonhas","F",0,"IGAM-MG"],["40338150",270.6,178.8,"Córrego Mãe D'Água","F",0,"IGAM-MG"],["40537000",306.4,388.5,"Rio Paraopeba(Mont. Cristiano Otoni)","F",0,"IGAM-MG"],["40549998",247.2,258.7,"São Brás Do Suaçuí Montante","F",0,"ANA"],["40579500",308.3,252.2,"Conselheiro Lafaiete","F",0,"IGAM-MG"],["40579990",244.6,202.0,"Córrego Maria José","F",0,"IGAM-MG"],["40579995",288.1,211.3,"Congonhas Linigrafo","F",0,"ANA"],["40580100",245.3,209.2,"Rio Maranhão (Prox.Foz Rio Parãopeba)","F",0,"IGAM-MG"],["40678000",161.4,283.2,"Entre Rios De Minas","F",0,"IGAM-MG"],["40680000",155.5,290.3,"Entre Rios De Minas","F",0,"ANA"],["40680001",155.5,290.3,"Entre Rios De Minas","F",1,"IGAM-MG"],["40684000",206.0,221.0,"Jeceaba","F",0,"IGAM-MG"],["40686000",201.3,233.7,"Pch Salto Do Paraopeba Rio Camapuã","F",1,"AMBAR"],["40700050",211.9,223.6,"Pch Salto Do Paraopeba Montante","F",1,"AMBAR"],["40700080",203.5,204.6,"Pch Salto Do Paraopeba Barramento","F",1,"AMBAR"],["40701000",206.5,215.9,"Jeceaba","F",0,"IGAM-MG"],["40701500",183.7,149.0,"Belo Vale (Igam)","F",0,"IGAM-MG"],["40710000",183.7,148.9,"Belo Vale","F",0,"ANA"],["40710001",183.7,148.9,"Belo Vale","F",1,"IGAM-MG"],["40712000",91.0,135.4,"Cgh Caquende Jusante","F",1,"MACAÚBAS"],["40712500",91.6,129.9,"Bonfim","F",1,"IGAM-MG"],["40712600",85.2,123.4,"Cgh Juliões Jusante","F",1,"MF PROJETOS"],["40713000",110.4,100.7,"Alto Rio Doce","F",0,"IGAM-MG"],["40718500",204.1,24.3,"Mãe D\"Água Montante Captação","F",0,"RETIRO CHALÉ"],["40718800",204.6,33.0,"Valente","F",0,"RETIRO CHALÉ"],["40718900",202.7,24.0,"Mãe D'Água Jusante","F",0,"RETIRO CHALÉ"],["40719000",197.6,30.8,"Entrada Do Lago Sul","F",0,"RETIRO CHALÉ"],["40719500",196.8,30.1,"Entrada Do Lago Norte","F",0,"RETIRO CHALÉ"],["40719800",203.8,25.8,"Biquinha","F",0,"RETIRO CHALÉ"],["40720001",126.7,30.2,"Córrego Lagoa Grande","F",0,"VALE"],["40720003",126.3,30.3,"Melo Franco (Igam)","F",0,"IGAM-MG"],["40740000",105.7,13.4,"Alberto Flores","F",1,"ANA"],["40740050",107.1,10.4,"Linha Férrea Montante","F",0,"VALE"],["40740057",109.5,9.6,"Ribeirão Casa Branca Montante Da Etaf-01","F",0,"VALE"],["40740060",108.2,9.5,"Ribeirão Casa Branca","F",0,"VALE"],["40740063",107.9,9.2,"Brumadinho","F",0,"IGAM-MG"],["40740064",122.4,-0.6,"Ribeirão Do Ferro","F",0,"VALE"],["40740065",106.5,8.6,"Confluência Com O Ribeirão Ferro-Carvão","F",0,"VALE"],["40740066",105.6,8.1,"Carvão","F",0,"VALE"],["40740070",104.7,7.6,"Jusante Do Ferro","F",0,"VALE"],["40740400",83.0,-1.1,"Rio Paraopeba (Brumadinho)","F",0,"VALE"],["40740500",76.1,-4.7,"Captação Copasa - Brumadinho Montante","F",0,"VALE"],["40755000",5.8,146.3,"Crucilandia","F",1,"IGAM-MG"],["40755010",6.0,146.1,"Crucilândia","F",0,"IGAM-MG"],["40760000",73.5,-3.3,"Brumadinho","F",0,"IGAM-MG"],["40760100",73.8,-3.4,"Rio Manso","F",0,"VALE"],["40770100",51.8,1.2,"Barragem Rio Manso","F",1,"COPASA-MG"],["40797500",245.3,257.7,"São João Del Rei","F",0,"IGAM-MG"],["40850100",75.2,-4.4,"Captação Copasa - Brumadinho","F",0,"IGAM-MG"],["2043005",334.1,270.5,"Conselheiro Lafaiete","P",0,"ANA"],["2043013",291.3,212.7,"Congonhas - Linigrafo","P",1,"ANA"],["2043052",364.2,200.4,"Ouro Branco (Acominas)","M",1,"INMET"],["2043075",203.5,204.6,"Pch Salto Do Paraopeba Barramento","P",1,"AMBAR"],["2043089",211.9,223.6,"Pch Salto Do Paraopeba Montante","P",1,"AMBAR"],["2043090",201.3,234.0,"Pch Salto Do Paraopeba Rio Camapuã","P",1,"AMBAR"],["2043099",275.6,207.7,"Congonhas_Alto Do Cruzeiro","P",1,"CEMADEN"],["2043100",268.8,202.6,"Congonhas_Dom Oscar","P",1,"CEMADEN"],["2043101",308.7,210.5,"Congonhas_Lobo Leite","P",1,"CEMADEN"],["2043102",299.1,232.4,"Congonhas_Joaquim Murtinho","P",1,"CEMADEN"],["2043103",313.2,290.1,"Conselheiro Lafaiete_Centro","P",1,"CEMADEN"],["2043104",310.3,249.7,"Conselheiro Lafaiete_Gagé","P",1,"CEMADEN"],["2043105",307.5,289.0,"Conselheiro Lafaiete_São Sebastião","P",1,"CEMADEN"],["2043106",326.1,281.7,"Conselheiro Lafaiete_Belavinha","P",1,"CEMADEN"],["2043107",319.9,342.3,"Conselheiro Lafaiete_Buarque De Macedo","P",1,"CEMADEN"],["2043108",312.0,301.9,"Conselheiro Lafaiete_Santa Matilde","P",1,"CEMADEN"],["2043131",206.0,30.1,"Estaçao Pluviométrica Da Serra","P",0,"RETIRO CHALÉ"],["2043132",196.3,30.5,"Estação Pluviométrica Lago Norte","P",0,"RETIRO CHALÉ"],["2043133",334.1,270.5,"Conselheiro Lafaiete","P",1,"IGAM-MG"],["2044007",155.3,290.7,"Entre Rios De Minas","P",1,"ANA"],["2044008",128.1,30.8,"Melo Franco","P",0,"ANA"],["2044033",183.7,148.9,"Belo Vale","P",1,"ANA"],["2044065",90.8,137.6,"Cgh Caquende Jusante","P",1,"MACAÚBAS"],["2044068",21.9,69.9,"Rio Manso / Elrm","P",0,"COPASA-MG"],["2044070",53.2,-1.6,"Bh - Eta Rio Manso (Brumadinho)","P",0,"COPASA-MG"],["2044079",158.4,431.3,"Lagoa Dourada","P",1,"IGAM-MG"],["2044080",91.6,129.9,"Bonfim","P",1,"IGAM-MG"],["2044081",5.8,146.3,"Crucilandia","P",1,"IGAM-MG"],["2044085",179.6,152.1,"Belo Vale_Belo Vale","P",1,"CEMADEN"],["2044088",83.6,0.1,"Brumadinho_Centro1","P",1,"CEMADEN"],["2044089",74.6,1.8,"Brumadinho_Progresso","P",1,"CEMADEN"],["2044091",182.9,12.4,"Brumadinho_Rua Prefeito Maciel","P",1,"CEMADEN"],["2044092",135.8,-4.4,"Brumadinho_Córrego Feijão","P",1,"CEMADEN"],["2044093",113.4,7.4,"Brumadinho_Alberto Flores","P",1,"CEMADEN"],["2044094",84.7,-0.5,"Brumadinho_Centro2","P",1,"CEMADEN"],["2044095",136.9,29.8,"Brumadinho_Aranha","P",1,"CEMADEN"],["2044102",102.3,7.9,"Alberto Flores","P",1,"ANA"],["2044103",85.2,123.4,"Cgh Juliões Jusante","P",1,"MF PROJETOS"]];
 const GEO={"W":400,"H":442,"zonas":{"Z1":"M290.9,152.4 L314.7,165.7 L326.5,159.3 L332.7,163.3 L338.8,161.6 L343.5,172.0 L347.4,172.3 L353.4,168.0 L364.2,168.9 L370.1,160.4 L373.8,160.4 L374.0,167.5 L370.2,171.0 L380.8,179.7 L373.5,184.1 L372.3,193.8 L362.7,197.6 L392.0,204.5 L395.8,214.4 L393.3,219.8 L385.5,221.8 L385.3,228.0 L399.5,242.8 L399.5,250.0 L389.6,253.4 L393.0,262.3 L386.5,265.9 L380.2,282.4 L374.9,284.7 L377.8,294.0 L372.5,295.4 L370.2,309.4 L364.2,313.4 L365.4,316.1 L356.6,328.6 L341.8,328.2 L338.3,342.0 L329.9,343.3 L332.0,359.5 L325.3,362.7 L322.8,369.5 L330.3,381.4 L328.0,387.0 L324.7,385.8 L328.3,394.1 L326.4,398.5 L318.5,399.2 L318.1,404.4 L311.1,407.9 L308.7,415.3 L297.7,409.4 L285.6,412.2 L283.4,419.7 L277.2,415.4 L261.2,422.5 L253.4,416.8 L243.8,427.2 L237.9,421.8 L231.9,428.9 L224.2,431.1 L220.1,426.6 L223.0,398.9 L218.1,395.3 L220.6,392.3 L218.4,388.7 L222.8,385.9 L220.7,381.4 L223.6,372.3 L219.0,366.3 L224.6,352.7 L223.1,347.5 L216.0,343.2 L213.5,332.0 L202.1,325.3 L209.1,318.7 L207.1,305.8 L211.8,304.3 L203.6,277.1 L222.1,270.0 L223.4,261.4 L228.0,257.3 L228.1,245.5 L235.1,238.4 L231.4,234.9 L232.4,225.9 L221.9,228.4 L213.8,219.5 L218.3,213.9 L217.1,199.4 L234.3,184.9 L232.8,174.8 L236.9,173.7 L238.9,160.2 L249.0,153.3 L251.2,160.2 L255.0,155.7 L265.3,159.8 L275.9,151.8 L286.8,155.1 L290.9,152.4 ZM311.4,162.4 L311.6,162.2 L311.6,162.4 L311.4,162.4 Z","Z2":"M184.7,148.0 L176.7,155.4 L168.0,153.7 L163.3,169.5 L150.0,179.3 L151.2,183.4 L140.7,194.1 L132.9,193.0 L129.7,200.8 L121.7,200.3 L120.0,205.4 L112.5,203.3 L103.4,207.1 L101.1,214.5 L94.0,214.4 L88.9,223.3 L89.6,232.0 L85.0,232.7 L83.3,241.4 L76.8,243.1 L78.6,249.4 L73.2,252.2 L76.3,256.4 L59.6,264.9 L62.4,274.8 L71.1,277.7 L66.8,282.7 L69.2,284.8 L67.6,289.9 L61.2,288.0 L55.3,296.4 L49.9,297.7 L49.1,303.4 L54.0,303.4 L55.6,307.8 L52.0,314.7 L57.4,319.7 L46.7,324.4 L49.6,329.6 L45.5,331.8 L46.1,342.0 L38.4,344.2 L32.8,350.9 L37.5,364.6 L47.3,371.3 L48.8,385.6 L54.7,391.1 L53.5,403.2 L63.3,407.6 L73.6,404.8 L79.8,408.2 L86.5,406.5 L90.2,408.8 L90.4,414.5 L99.0,420.1 L100.1,425.5 L106.4,423.3 L113.8,429.6 L120.9,423.7 L136.2,429.3 L138.0,435.2 L142.7,435.5 L147.5,441.3 L154.8,428.1 L166.9,437.5 L172.0,433.3 L180.7,440.5 L192.7,437.2 L199.8,441.9 L214.1,426.0 L220.4,426.3 L224.0,408.8 L223.0,398.9 L218.1,395.3 L220.6,392.3 L218.4,388.7 L222.8,385.9 L220.7,381.4 L223.6,372.3 L219.0,366.3 L224.6,352.7 L223.1,347.5 L216.0,343.2 L213.5,332.0 L202.1,325.3 L209.1,318.7 L207.1,305.8 L211.8,304.3 L203.6,277.1 L222.1,270.0 L223.4,261.4 L228.0,257.3 L228.1,245.5 L234.0,242.0 L232.4,225.9 L220.9,228.0 L213.0,217.2 L218.3,213.9 L215.6,205.9 L218.1,197.6 L234.3,184.9 L232.8,174.8 L236.9,173.7 L239.9,158.6 L233.6,155.0 L232.7,161.5 L227.7,164.0 L207.3,155.0 L198.5,157.5 L196.1,152.8 L184.7,148.0 Z","Z3":"M89.6,232.0 L89.8,232.2 L89.6,232.2 L89.6,232.0 ZM151.3,183.4 L151.2,183.5 L151.2,183.4 L151.3,183.4 ZM63.2,129.9 L68.5,119.6 L65.5,111.7 L72.3,104.2 L72.9,88.6 L77.4,88.6 L78.9,79.8 L85.7,77.2 L98.3,81.6 L103.7,79.4 L97.8,70.1 L91.8,69.2 L89.5,61.7 L93.1,57.7 L91.2,51.2 L94.0,42.0 L98.4,39.2 L96.0,36.3 L98.4,31.7 L90.6,22.2 L93.7,14.7 L109.8,13.0 L121.1,18.3 L124.6,14.2 L133.8,14.8 L135.6,10.3 L139.2,11.9 L148.9,7.4 L156.3,13.8 L162.1,7.0 L168.9,9.5 L181.7,2.9 L188.1,4.5 L198.2,0.0 L208.8,2.1 L211.2,19.3 L206.7,24.3 L207.6,39.3 L215.6,67.3 L225.1,80.1 L229.5,96.9 L231.3,125.5 L236.4,142.4 L232.7,161.5 L229.5,164.2 L220.7,162.5 L206.2,154.8 L198.5,157.5 L196.1,152.8 L185.2,148.0 L176.7,155.4 L168.3,153.4 L163.3,169.5 L150.0,179.3 L151.2,183.4 L140.7,194.1 L132.9,193.0 L129.7,200.8 L121.7,200.3 L120.0,205.4 L112.5,203.3 L103.4,207.1 L101.1,214.5 L94.0,214.4 L88.9,223.3 L89.6,232.0 L85.0,232.7 L83.3,241.4 L76.8,243.1 L78.6,249.4 L73.2,252.2 L76.3,256.4 L59.6,264.9 L62.4,274.8 L46.4,273.8 L41.0,280.3 L34.3,281.9 L20.9,273.3 L17.2,262.3 L27.7,259.1 L26.8,254.3 L9.8,240.1 L7.3,226.9 L1.4,223.6 L13.0,207.3 L12.1,203.0 L4.7,204.8 L0.0,200.2 L9.4,187.8 L9.7,177.8 L15.6,169.0 L34.8,164.3 L38.7,157.8 L47.0,153.6 L45.7,150.1 L51.2,146.6 L55.3,130.6 L63.2,129.9 Z"},"cent":{"Z1":[292.3,291.4],"Z2":[133.1,294.9],"Z3":[144.0,140.9]},"rios":"M298.0,-46.0 L298.7,-56.1 L296.0,-64.9 L288.3,-72.4 L295.4,-77.7 L295.5,-81.8 L291.5,-86.2 L295.4,-86.0 L295.4,-89.6 L301.6,-88.3 L304.6,-97.4 L304.0,-102.3 L298.0,-108.2 M-137.1,173.5 L-150.1,160.1 L-148.1,155.6 L-150.3,151.8 L-158.4,146.6 L-160.2,140.9 L-157.5,137.1 L-159.8,132.6 L-164.3,132.6 L-164.8,127.3 L-171.7,124.4 L-169.3,121.2 L-172.5,113.5 L-169.0,111.6 L-176.3,107.9 L-176.3,104.3 L-190.8,102.0 L-197.3,104.6 L-205.4,97.4 L-204.4,92.2 L-214.8,84.1 L-218.3,71.2 L-231.6,56.5 L-225.7,52.5 L-227.8,45.5 L-226.2,44.7 L-232.8,44.1 L-239.5,32.8 L-242.9,33.4 L-240.5,30.7 L-249.4,22.2 L-253.1,14.7 M206.8,220.3 L206.7,209.2 L203.3,199.8 L191.2,196.8 L197.7,192.9 L198.9,196.2 L201.5,195.3 L202.3,191.2 L193.3,188.4 L198.9,183.7 L199.1,180.0 L196.5,179.1 L201.4,176.7 L196.2,174.6 L198.8,171.7 L183.7,173.4 L190.0,164.6 L183.7,163.6 L180.8,165.7 L178.2,161.1 L183.1,157.1 L180.6,153.1 L184.1,149.7 L181.0,146.0 L186.7,143.5 L180.5,139.2 L181.0,132.4 L177.5,132.1 L172.6,126.2 L176.4,122.8 L176.7,115.5 L173.4,112.9 L162.4,116.4 L161.1,119.7 L156.0,119.0 L157.7,113.4 L154.2,113.4 L160.1,105.8 L156.3,105.1 L158.7,103.1 L156.3,99.8 L151.3,103.9 L147.5,103.4 L146.5,97.5 L150.3,94.9 L149.5,90.4 L144.1,90.6 L141.8,87.8 L137.0,92.1 L140.4,95.4 L132.3,94.3 L128.0,97.5 L127.0,92.8 L131.2,90.7 L125.3,86.0 L131.5,82.7 L127.6,80.0 L130.0,75.1 L126.2,74.1 L129.7,70.3 L127.0,65.9 L129.7,60.5 L120.0,57.6 L116.9,59.7 L114.6,55.9 L110.2,57.0 L113.8,47.2 L118.2,51.1 L125.3,52.0 L133.2,44.4 L126.1,37.2 L126.5,29.2 L123.5,29.2 L118.7,23.4 L110.2,25.1 L113.5,19.5 L105.1,18.1 L106.1,8.3 L96.1,4.5 L93.1,0.6 L89.9,2.4 L88.6,0.0 L81.5,-1.2 L83.6,-4.2 L80.4,-7.1 L78.0,-0.6 L74.5,-5.3 L79.5,-15.6 L77.1,-26.5 L79.4,-38.9 L75.6,-44.3 L84.1,-47.3 L85.4,-51.5 L80.9,-56.2 L73.2,-52.9 L75.0,-56.4 L68.2,-59.6 L62.7,-58.2 L62.0,-52.5 L59.1,-52.3 L56.4,-56.8 L53.2,-54.4 L47.9,-62.7 L53.1,-66.1 L50.8,-69.2 L53.8,-71.1 L49.3,-78.6 L46.3,-79.8 L43.5,-77.4 L41.1,-89.8 L43.1,-91.9 L38.1,-101.0 L30.7,-101.1 L27.2,-108.2 M59.1,538.8 L56.8,535.8 L51.2,536.4 L49.3,528.2 L46.3,526.5 L47.6,521.7 L41.7,519.6 L42.0,513.5 L37.5,512.2 L34.5,505.7 L30.1,503.4 L29.2,508.5 L22.2,510.4 L23.6,513.8 L16.0,516.9 L17.5,519.9 L13.3,518.5 L7.9,520.9 L9.7,525.5 L6.7,527.4 L3.3,526.2 L5.4,523.7 L2.4,520.2 L-3.0,520.6 L-5.4,525.5 L-10.1,527.3 L-10.3,530.8 L-17.1,525.9 L-20.9,534.5 L-31.6,533.9 L-31.1,528.2 L-35.2,532.0 L-35.2,535.8 L-44.0,530.2 L-44.3,534.5 L-47.6,534.7 L-54.1,541.6 L-59.9,534.4 L-61.1,537.3 L-70.6,538.6 L-75.7,536.7 L-77.1,538.9 L-87.5,533.8 L-102.2,534.4 L-108.2,528.6 L-112.6,531.8 L-110.2,535.1 L-115.3,536.5 L-120.2,532.9 L-121.8,536.1 L-130.9,538.8 L-131.2,527.6 L-137.1,525.8 L-137.4,529.9 L-150.4,535.4 L-159.8,530.6 L-164.2,531.8 L-168.9,538.6 L-175.4,536.7 L-182.0,546.8 L-197.6,547.7 L-199.4,549.7 L-195.5,553.7 L-199.5,556.8 L-211.5,554.5 L-217.2,559.2 L-222.7,552.4 L-222.4,549.2 L-231.6,540.4 L-238.2,547.1 L-242.8,542.6 L-245.0,544.8 L-248.7,543.8 L-249.4,540.1 L-253.1,542.6","est":{"40740000":[105.7,13.4,"Alberto Flores"],"40710001":[183.7,148.9,"Belo Vale"],"40680001":[155.5,290.3,"Entre Rios"],"40686000":[201.3,233.7,"Camapu\u00e3"],"40700050":[211.9,223.6,"Salto do Paraopeba"],"40700080":[203.5,204.6,"Salto (barr.)"],"40712500":[91.6,129.9,"Bonfim"]},"sede":[83.6,0.1]};
 const HEX=['#2e9e5b','#f2c230','#f08a24','#d93a26','#8e1537'];
 const TXT=['#ffffff','#111111','#111111','#ffffff','#ffffff'];
@@ -115,7 +131,14 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const f=(v,d=0)=>v==null||isNaN(v)?'sem dado':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
 const dtf=s=>{if(!s)return 'sem dado';const d=new Date(s.replace(' ','T')+'-03:00');return d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'})};
 const ddm=s=>s.slice(8,10)+'/'+s.slice(5,7);
-const chip=(n,N)=>`<span class="chip" style="background:${HEX[n]};color:${TXT[n]}">${esc(N[n])}</span>`;
+const chip=(n,N,e)=>n==null?`<span class="chip nd">Sem dado</span>`:`<span class="chip" style="background:${HEX[n]};color:${TXT[n]}">${esc(N[n])}${e==='parcial'?' · parcial':''}</span>`;
+const hm=s=>s?dtf(s).slice(-5):'sem dado';
+const ageOf=t=>t?(Date.now()-new Date(String(t).replace(' ','T')+'-03:00').getTime())/36e5:null;
+const idh=h=>h==null?'':h<1?`há ${Math.round(h*60)} min`:`há ${f(h,1)} h`;
+const FONTE={medicao:'medição',modelo:'modelo',misto:'misto','sem dado':'sem dado'};
+let ZOOM=720;
+function gaps(serie,maxh){const o=[];for(let i=0;i<serie.length;i++){if(i&&(new Date(serie[i][0])-new Date(serie[i-1][0]))/36e5>maxh)o.push([serie[i-1][0],null]);o.push(serie[i]);}return o;}
+function xr(serie){if(!serie.length)return undefined;const e=new Date(serie[serie.length-1][0]+':00Z').getTime(),a=e-ZOOM*36e5;const iso=t=>new Date(t).toISOString().slice(0,16).replace('T',' ');return [iso(a),iso(e+Math.max(1,ZOOM/24)*36e5)];}
 const PL={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'IBM Plex Sans',color:'#333',size:12},margin:{l:48,r:12,t:10,b:36},
  xaxis:{gridcolor:'#eceff1',linecolor:'#c9d2d8'},yaxis:{gridcolor:'#eceff1',linecolor:'#c9d2d8',rangemode:'tozero'},showlegend:false,hovermode:'x unified',hoverlabel:{bgcolor:'#fff',bordercolor:'#c9d2d8',font:{color:'#111'}}};
 const CFG={displaylogo:false,responsive:true,modeBarButtonsToRemove:['lasso2d','select2d','autoScale2d']};
@@ -130,51 +153,66 @@ function gauge(v,lim,n){const top=lim[3]*1.25,W=220,H=128,cx=110,cy=112,R=92,r=7
  const a=ang(v||0);s+=`<line x1="${cx}" y1="${cy}" x2="${cx+(R+2)*Math.cos(a)}" y2="${cy-(R+2)*Math.sin(a)}" stroke="#111" stroke-width="3" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="6" fill="#111"/>`;
  return `<svg viewBox="0 -12 ${W} ${H+12}" class="gauge">${s}</svg>`;}
 function render(d){
- const N=d.niveis_nomes,L=d.limites,n=d.nivel.atual,age=(Date.now()-new Date(d.atualizado+'-03:00').getTime())/36e5;
- document.getElementById('upd').textContent=d.ao_vivo?`Ao vivo · régua lida às ${dtf(d.af.t).slice(-5)} · verificado às ${dtf(d.atualizado).slice(-5)}`:`Dados de ${dtf(d.atualizado)} · conectando à telemetria`;
- document.getElementById('dot').className='dot'+(age>1?' old':'');
- const w=document.getElementById('warn');w.hidden=age<=1;w.textContent=age>1?`Os dados têm ${f(age,1)} horas. A rotina de atualização ou a telemetria pode estar fora do ar.`:'';
- const bn=document.getElementById('banner');bn.style.background=HEX[n];bn.style.color=TXT[n];
- document.getElementById('bnV').textContent=N[n];
- const drv=d.nivel.indicadores.filter(i=>i.nivel===n&&n>0).map(i=>i.nome.toLowerCase());
- document.getElementById('bnT').textContent=n===0?'Nenhum indicador atingiu o limite de Atenção. '+SIT[0]+'.':`${SIT[n]}. Nível definido por ${drv.join(', ')}.`;
- document.querySelectorAll('#steps li').forEach((li,i)=>{li.className=i===n?'cur':i<n?'past':'';li.style.setProperty('--c',HEX[i]);});
+ const N=d.niveis_nomes,L=d.limites,st=d.nivel.status||'valido',n0=d.nivel.atual,n=st==='indeterminado'?null:n0,col=d.coleta||d.atualizado,age=(Date.now()-new Date(col+'-03:00').getTime())/36e5,Q=d.qualidade||{};
+ const ok=d.ao_vivo&&d.ao_vivo.ok;
+ document.getElementById('upd').textContent=ok?`Ao vivo · verificado às ${hm(d.verificado)}`:d.ao_vivo?'Telemetria ao vivo indisponível · exibindo a última coleta publicada':`Última coleta ${dtf(col)} · conectando à telemetria`;
+ document.getElementById('tempos').innerHTML=[`Régua medida às ${hm(d.af.t)} ${idh(ageOf(d.af.t))}`,`Vazão de Belo Vale medida às ${hm(d.bv.t)} ${idh(ageOf(d.bv.t))}`,`Coleta do servidor ${dtf(col)}`,`Publicação ${dtf(d.publicacao||col)}`].map(x=>`<span>${esc(x)}</span>`).join('');
+ const stale=age>1;document.getElementById('dot').className='dot'+(stale&&!ok?' old':'');
+ const w=document.getElementById('warn'),msg=[];
+ if(stale)msg.push(`A última coleta publicada pelo servidor tem ${f(age,1)} horas${ok?'; os valores abaixo foram atualizados diretamente da telemetria neste navegador':''}. A rotina automática de atualização pode estar atrasada.`);
+ if(st==='indeterminado')msg.push('Nível indeterminado: não há leitura válida suficiente da régua e de Belo Vale para afirmar a condição atual. Consulte diretamente a régua e a Defesa Civil.');
+ w.hidden=!msg.length;w.textContent=msg.join(' ');
+ const bn=document.getElementById('banner'),cn=n==null?'#8a99a3':HEX[n];bn.style.background=cn;bn.style.color=n==null?'#fff':TXT[n];
+ document.getElementById('bnV').textContent=n==null?'Indeterminado':N[n]+(st==='degradado'?' · dados parciais':'');
+ const drv=d.nivel.indicadores.filter(i=>i.nivel===d.nivel.bruto&&i.nivel>0).map(i=>i.nome.toLowerCase());
+ document.getElementById('bnT').textContent=n==null?`Sem leitura válida da régua e de Belo Vale nas últimas 3 horas e nenhum indicador acionado.${n0!=null?' Último nível registrado: '+N[n0]+'.':''}`:n===0?(st==='valido'?'Nenhum indicador atingiu o limite de Atenção. '+SIT[0]+'.':'Nenhum indicador disponível atingiu o limite de Atenção, mas há indicador sem dado.'):`${SIT[n]}.${drv.length?' Indicado por '+drv.join(', ')+'.':''}`;
+ document.getElementById('bnS').textContent=[d.nivel.desde?`Nível vigente desde ${dtf(d.nivel.desde)}${d.nivel.causa?' ('+d.nivel.causa.toLowerCase()+')':''}.`:'',d.nivel.elevado_ao_vivo?'Elevação detectada pela telemetria ao vivo, a ser registrada na próxima coleta do servidor.':'',d.nivel.motivo&&d.nivel.motivo!=='rebaixamento reservado ao coletor'?'Rebaixamento: '+d.nivel.motivo+'.':''].filter(Boolean).join(' ');
+ document.querySelectorAll('#steps li').forEach((li,i)=>{li.className=n!=null&&i===n?'cur':n!=null&&i<n?'past':'';li.style.setProperty('--c',HEX[i]);});
  const af=d.af,bv=d.bv,Z=d.zonas;
- document.getElementById('kAF').textContent=af.h==null?'sem dado':`${f(af.h,2)} m`;
+ document.getElementById('kAF').textContent=af.h==null?'sem dado':`${f(af.h,2)} m`;document.getElementById('kAF').className=Q.nivel?.estado==='indisponivel'?'old':'';
  document.getElementById('kAFt').textContent=af.tendencia_cm_h==null?dtf(af.t):`${af.tendencia_cm_h>0.5?'Subindo':af.tendencia_cm_h<-0.5?'Descendo':'Estável'} ${f(Math.abs(af.tendencia_cm_h),1)} cm/h · ${dtf(af.t)}`;
- document.getElementById('kBV').textContent=bv.q==null?'sem dado':`${f(bv.q,0)} m³/s`;
- document.getElementById('kBVt').textContent=`Atenção em ${f(L.BV[0])} m³/s · ${dtf(bv.t)}`;
+ document.getElementById('kBV').textContent=bv.q==null?'sem dado':`${f(bv.q,0)} m³/s`;document.getElementById('kBV').className=Q.vazao?.estado==='indisponivel'?'old':'';
+ document.getElementById('kBVt').textContent=`Atenção em ${f(L.BV[0])} m³/s · ${dtf(bv.t)}${Q.vazao?.estado==='indisponivel'?' · leitura antiga':''}`;
  const zmax=Object.keys(Z).reduce((a,b)=>(Z[b].P5??-1)>(Z[a].P5??-1)?b:a);
  document.getElementById('kP5').textContent=`${f(Z[zmax].P5,0)} mm`;
- document.getElementById('kP5t').textContent=`Zona ${zmax} · Atenção em ${Z[zmax].limites[0]} mm`;
- document.getElementById('kSolo').textContent=d.solo.umido?'Úmido':'Normal';
- document.getElementById('kSolot').textContent=`Alberto Flores ontem ${f(d.solo.af_q_ontem,0)} m³/s · 30 dias ${f(d.solo.p30_bacia,0)} mm`;
- document.getElementById('ind').innerHTML=d.nivel.indicadores.map(i=>`<div><span>${esc(i.nome)}</span>${chip(i.nivel,N)}</div>`).join('');
+ document.getElementById('kP5t').textContent=`Zona ${zmax} · Atenção em ${Z[zmax].limites[0]} mm · ${FONTE[Z[zmax].fonte]||Z[zmax].fonte}`;
+ document.getElementById('kSolo').textContent=d.solo.estado==='indeterminado'?'Indeterminado':d.solo.umido?'Úmido':'Normal';
+ document.getElementById('kSolot').textContent=`Alberto Flores ontem ${f(d.solo.af_q_ontem,0)} m³/s · 30 dias na bacia ${f(d.solo.p30_bacia,0)} mm (média ponderada pela área)`;
+ document.getElementById('ind').innerHTML=d.nivel.indicadores.map(i=>`<div><span>${esc(i.nome)}${i.nome.startsWith('Régua')?` <small>${idh(ageOf(d.af.t))}</small>`:i.nome.startsWith('Vazão')?` <small>${idh(ageOf(d.bv.t))}</small>`:''}</span>${chip(i.nivel,N,i.estado)}</div>`).join('');
  document.getElementById('alerts').innerHTML=d.alertas.length?d.alertas.map(a=>`<li style="border-left-color:${a.tipo==='dado'?'#8a99a3':HEX[a.nivel]}">${a.tipo==='previsao'?'<b>Previsão. </b>':a.tipo==='dado'?'<b>Dados. </b>':''}${esc(a.texto)}</li>`).join(''):'<li style="border-left-color:var(--n0)">Nenhum alerta ativo. Todos os indicadores estão abaixo do limite de Atenção.</li>';
  document.getElementById('fprev').textContent=d.fonte_previsao?`. Fonte da previsão: ${d.fonte_previsao}.`:'.';
- document.getElementById('fc').innerHTML=d.previsao.length?d.previsao.map(p=>`<div style="border-top:5px solid ${HEX[p.nivel]}"><span>${ddm(p.d)}</span><b>${esc(N[p.nivel])}</b><small>Z1 ${f(p.P5.Z1,0)} · Z2 ${f(p.P5.Z2,0)} · Z3 ${f(p.P5.Z3,0)} mm</small></div>`).join(''):'<div>Previsão indisponível</div>';
+ document.getElementById('fc').innerHTML=d.previsao.length?d.previsao.map(p=>`<div style="border-top:5px solid ${HEX[p.nivel]}"><span>${ddm(p.d)}</span><b>${esc(N[p.nivel])}</b><small>Z1 ${f(p.P5.Z1,0)} · Z2 ${f(p.P5.Z2,0)} · Z3 ${f(p.P5.Z3,0)} mm${p.parcial?' · previsão parcial':''}</small></div>`).join(''):'<div>Previsão indisponível</div>';
  let s='';
- for(const z in GEO.zonas){const zn=Z[z]?.nivel??0;s+=`<path d="${GEO.zonas[z]}" fill="${HEX[zn]}" fill-opacity="${zn?0.6:0.28}" stroke="#fff" stroke-width="2"><title>${z} ${esc(Z[z]?.nome)}: ${f(Z[z]?.P5,0)} mm em 5 dias</title></path>`;}
+ for(const z in GEO.zonas){const zn=Z[z]?.nivel;s+=`<path d="${GEO.zonas[z]}" fill="${zn==null?'#b8c2c8':HEX[zn]}" fill-opacity="${zn?0.6:0.28}" stroke="#fff" stroke-width="2"><title>${z} ${esc(Z[z]?.nome)}: ${f(Z[z]?.P5,0)} mm em 5 dias</title></path>`;}
  s+=`<path d="${GEO.rios}" fill="none" stroke="#1f6fb2" stroke-width="2"/>`;
- for(const c in GEO.est){const [x,y,nm]=GEO.est[c];const e=d.estacoes.find(e=>e.cod===c);s+=`<circle cx="${x}" cy="${y}" r="5" fill="${e&&e.ok?'#111':'#b8c2c8'}" stroke="#fff" stroke-width="1.5"><title>${esc(nm)} (${c})${e&&e.ok?'':' sem transmissão'}</title></circle>`;}
- const [sx,sy]=GEO.sede;s+=`<rect x="${sx-7}" y="${sy-7}" width="14" height="14" fill="#1f6fb2" stroke="#fff" stroke-width="2"/><text x="${sx+12}" y="${sy+5}" class="ml">Brumadinho</text>`;
+ const lay=window.LAY||{F:1,P:1,M:1},CF={F:'#1f6fb2',P:'#2e7d4f',M:'#c26a00'},TN={F:'Fluviométrica',P:'Pluviométrica',M:'Meteorológica'};
+ for(const [c,x,y,nm,t,tel,rs] of INV){if(!lay[t]||c==='40740000'||c==='40710001')continue;const fl=tel?CF[t]:'#fff',st=CF[t],tt=`<title>${esc(nm)} (${c}) · ${TN[t]} ${tel?'telemétrica':'convencional'} · ${esc(rs)}</title>`;
+  s+=t==='F'?`<polygon points="${x},${y-5} ${x+4.5},${y+3.5} ${x-4.5},${y+3.5}" fill="${fl}" stroke="${st}" stroke-width="1.4">${tt}</polygon>`:t==='P'?`<circle cx="${x}" cy="${y}" r="3.4" fill="${fl}" stroke="${st}" stroke-width="1.4">${tt}</circle>`:`<rect x="${x-4}" y="${y-4}" width="8" height="8" fill="${fl}" stroke="${st}" stroke-width="1.4" transform="rotate(45 ${x} ${y})">${tt}</rect>`;}
+ for(const c in GEO.est){if(c==='40740000'||c==='40710001')continue;const [x,y,nm]=GEO.est[c];const e=d.estacoes.find(e=>e.cod===c);s+=`<circle cx="${x}" cy="${y}" r="7" fill="none" stroke="${e&&e.ok?'#111':'#b8c2c8'}" stroke-width="1.6"><title>${esc(nm)} (${c}) · usada pelo painel${e&&e.ok?'':' · sem transmissão'}</title></circle>`;}
+ {const [x,y]=GEO.est['40740000'],e=d.estacoes.find(e=>e.cod==='40740000'),ok=e&&e.ok;
+  s+=`<g><title>Régua de Alberto Flores (40740000) · cota ${f(d.af.h,2)} m${ok?'':' · sem transmissão'}</title><rect x="${x-4}" y="${y-14}" width="8" height="26" fill="#fff" stroke="#111" stroke-width="1.6"/>${[0,1,2,3,4].map(i=>`<line x1="${x-4}" x2="${x+(i%2?0:3)}" y1="${y-10+i*5}" y2="${y-10+i*5}" stroke="#111" stroke-width="1.2"/>`).join('')}<rect x="${x-4}" y="${y+12-Math.min(26,Math.max(2,d.af.h/13*26))}" width="8" height="${Math.min(26,Math.max(2,d.af.h/13*26))}" fill="${HEX[d.af.nivel||0]}" opacity=".85"/></g><text x="${x+9}" y="${y+2}" class="ml">Régua · Alberto Flores</text>`;}
+ {const [x,y]=GEO.est['40710001'];
+  s+=`<g><title>Medição de vazão em Belo Vale (40710001) · ${f(d.bv.q,0)} m³/s</title><rect x="${x-7}" y="${y-7}" width="14" height="14" fill="${HEX[d.bv.nivel||0]}" stroke="#111" stroke-width="1.6" transform="rotate(45 ${x} ${y})"/></g><text x="${x+11}" y="${y+4}" class="ml">Vazão · Belo Vale</text>`;}
+ const [sx,sy]=GEO.sede;s+=`<rect x="${sx-7}" y="${sy-7}" width="14" height="14" fill="#111" stroke="#fff" stroke-width="2"/><text x="${sx-10}" y="${sy-8}" text-anchor="end" class="ml">Brumadinho (sede)</text>`;
  for(const z in GEO.cent){const [x,y]=GEO.cent[z];s+=`<text class="zl" x="${x}" y="${y}" text-anchor="middle">${z}</text><text class="zv" x="${x}" y="${y+18}" text-anchor="middle">${f(Z[z]?.P5,0)} mm</text>`;}
- const m=document.getElementById('map');m.setAttribute('viewBox',`-10 -10 ${GEO.W+20} ${GEO.H+20}`);m.innerHTML=s;
- document.getElementById('leg').innerHTML=N.map((t,i)=>`<span><i style="background:${HEX[i]}"></i>${esc(t)}</span>`).join('')+'<span><i class="sq"></i>Sede</span><span><i class="ci"></i>Estação</span>';
+ const m=document.getElementById('map');m.setAttribute('viewBox',`-10 -24 ${GEO.W+20} ${GEO.H+34}`);m.innerHTML=s;
+ document.getElementById('leg').innerHTML=N.map((t,i)=>`<span><i style="background:${HEX[i]}"></i>${esc(t)}</span>`).join('')+'<span><i class="sq"></i>Sede</span><span><svg width="12" height="18"><rect x="2" y="1" width="8" height="16" fill="#fff" stroke="#111" stroke-width="1.5"/></svg>Régua (Alberto Flores)</span><span><svg width="16" height="16"><rect x="4" y="4" width="8" height="8" fill="#fff" stroke="#111" stroke-width="1.5" transform="rotate(45 8 8)"/></svg>Medição de vazão (Belo Vale)</span><span><svg width="14" height="14"><polygon points="7,1 13,12 1,12" fill="#1f6fb2"/></svg>Fluviométrica</span><span><svg width="14" height="14"><circle cx="7" cy="7" r="4.5" fill="#2e7d4f"/></svg>Pluviométrica</span><span><svg width="14" height="14"><rect x="3" y="3" width="8" height="8" fill="#c26a00" transform="rotate(45 7 7)"/></svg>Meteorológica</span><span><svg width="16" height="16"><circle cx="8" cy="8" r="6" fill="none" stroke="#111" stroke-width="1.6"/></svg>Usada pelo painel</span>';
  document.getElementById('zones').innerHTML=Object.keys(Z).map(z=>{const v=Z[z];
   return `<div class="card"><div class="ch"><b>${z} · ${esc(v.nome)}</b>${chip(v.nivel,N)}</div>
-  <div class="note">${v.fonte==='modelo'?'Estimativa por modelo meteorológico, sem pluviômetro telemétrico na zona':'Média dos pluviômetros '+esc(v.pluviometros.join(', '))}</div>
-  <div class="gw">${gauge(v.P5,v.limites,v.nivel)}<div class="gv">${f(v.P5,0)}<small>mm em 5 dias</small></div></div>
+  <div class="note"><span class="src s-${esc(v.fonte)}">${esc(FONTE[v.fonte]||v.fonte)}</span> ${v.pluviometros&&v.pluviometros.length?'Pluviômetros '+esc(v.pluviometros.join(', '))+(v.fonte==='misto'?', com horas sem medição completadas pelo modelo':''):'Sem pluviômetro telemétrico com dado; estimativa por modelo meteorológico'}. Cobertura de 5 dias ${f((v.cob5??0)*100,0)}%.</div>
+  <div class="gw">${gauge(v.P5,v.limites,v.nivel??-1)}<div class="gv">${f(v.P5,0)}<small>mm em 5 dias</small></div></div>
   <div class="row4"><div>24 h<b>${f(v.P24,0)}</b></div><div>72 h<b>${f(v.P72,0)}</b></div><div>30 dias<b>${f(v.P30,0)}</b></div><div>Prev. 72 h<b>${f(v.prev72,0)}</b></div></div>
   <div class="fig" id="g${z}"></div></div>`}).join('');
- for(const z in Z){const v=Z[z],dd=v.diario.map(x=>x.d),ob=v.diario.map(x=>x.obs),px=v.previsao.map(x=>x.d),py=v.previsao.map(x=>x.prev);
-  const tot={};dd.forEach((x,i)=>tot[x]=(tot[x]||0)+ob[i]);px.forEach((x,i)=>tot[x]=(tot[x]||0)+py[i]);
-  const xs=Object.keys(tot).sort(),vals=xs.map(x=>tot[x]),p5=vals.map((_,i)=>i<4?null:vals.slice(i-4,i+1).reduce((a,b)=>a+b,0));
+ for(const z in Z){const v=Z[z],dd=v.diario.map(x=>x.d),ob=v.diario.map(x=>x.obs),fo=v.diario.map(x=>x.fonte||(v.fonte==='modelo'?'modelo':'medicao')),px=v.previsao.map(x=>x.d),py=v.previsao.map(x=>x.prev);
+  const tot={},has={};dd.forEach((x,i)=>{if(ob[i]!=null){tot[x]=(tot[x]||0)+ob[i];has[x]=1}else if(!(x in tot))tot[x]=null;});px.forEach((x,i)=>{if(py[i]!=null){tot[x]=(tot[x]||0)+py[i];has[x]=1}else if(!(x in tot))tot[x]=null;});
+  const xs=Object.keys(tot).sort(),vals=xs.map(x=>tot[x]),p5=vals.map((_,i)=>{if(i<4)return null;const w=vals.slice(i-4,i+1);return w.some(x=>x==null)?null:w.reduce((a,b)=>a+b,0);});
+  const om=ob.map((y,i)=>fo[i]==='medicao'?y:null),oe=ob.map((y,i)=>fo[i]!=='medicao'?y:null);
   const lim=v.limites,top=Math.max(lim[3]*1.15,...p5.filter(x=>x!=null));
-  Plotly.react('g'+z,[{type:'bar',x:dd,y:ob,name:'Observada',marker:{color:'#1f6fb2'},hovertemplate:'%{y:.1f} mm'},
-   {type:'bar',x:px,y:py,name:'Prevista',marker:{color:'#9cc3e6'},hovertemplate:'%{y:.1f} mm'},
-   {type:'scatter',mode:'lines',x:xs,y:p5,name:'Chuva de 5 dias',line:{color:'#111',width:2},hovertemplate:'%{y:.0f} mm'}],
-   {...PL,barmode:'stack',yaxis:{...PL.yaxis,title:{text:'mm',font:{size:11}},range:[0,top]},xaxis:{...PL.xaxis,type:'date',tickformat:'%d/%m'},bargap:.15,
+  Plotly.react('g'+z,[{type:'bar',x:dd,y:om,name:'Medida',marker:{color:'#1f6fb2'},hovertemplate:'%{y:.1f} mm medida'},
+   {type:'bar',x:dd,y:oe,name:'Estimada ou mista',marker:{color:'#5aa0d6',pattern:{shape:'/',fillmode:'overlay',fgcolor:'#ffffff',fgopacity:0.6,size:6}},hovertemplate:'%{y:.1f} mm estimada'},
+   {type:'bar',x:px,y:py,name:'Prevista',marker:{color:'#c6dcef',line:{color:'#5aa0d6',width:1}},hovertemplate:'%{y:.1f} mm prevista'},
+   {type:'scatter',mode:'lines',x:xs,y:p5,name:'Chuva de 5 dias',connectgaps:false,line:{color:'#111',width:2},hovertemplate:'%{y:.0f} mm'}],
+   {...PL,showlegend:z==='Z1',legend:{orientation:'h',y:1.18,font:{size:10}},barmode:'stack',yaxis:{...PL.yaxis,title:{text:'mm',font:{size:11}},range:[0,top]},xaxis:{...PL.xaxis,type:'date',tickformat:'%d/%m'},bargap:.15,
     shapes:[...hlines(lim),{type:'line',x0:dd[dd.length-1],x1:dd[dd.length-1],yref:'paper',y0:0,y1:1,line:{color:'#8a99a3',width:1,dash:'dash'}}],annotations:hlabels(lim,N,'mm')},CFG);}
  const Lr=L.AF,H=12.5,RH=380,y=v=>RH-14-(v/H)*(RH-28);let r='';const ys=[0,...Lr,H];
  for(let i=0;i<5;i++)r+=`<rect x="58" y="${y(ys[i+1])}" width="34" height="${y(ys[i])-y(ys[i+1])}" fill="${HEX[i]}" fill-opacity=".9"/>`;
@@ -182,15 +220,34 @@ function render(d){
  [['1997',11.75],['2008',11.20],['2022',10.54],['2012',9.41]].forEach(([a,v])=>{r+=`<line x1="92" x2="104" y1="${y(v)}" y2="${y(v)}" stroke="#111"/><text x="108" y="${y(v)+4}" font-size="11" fill="#333">${a} ${f(v,2)}</text>`});
  if(af.h!=null)r+=`<rect x="58" y="${y(af.h)}" width="34" height="${y(0)-y(af.h)}" fill="#1f6fb2" fill-opacity=".85"/><polygon points="96,${y(af.h)} 110,${y(af.h)-7} 110,${y(af.h)+7}" fill="#111"/><text x="114" y="${y(af.h)+5}" font-size="14" font-weight="700" fill="#111">${f(af.h,2)} m</text>`;
  const R=document.getElementById('regua');R.setAttribute('viewBox',`0 0 200 ${RH}`);R.innerHTML=r;
- const ax=af.serie.map(p=>p[0]),ay=af.serie.map(p=>p[1]),topA=FIT?Math.max(...ay)*1.25:Math.max(11.5,...ay);
- Plotly.react('gAF',[{type:'scatter',mode:'lines',x:ax,y:ay,line:{color:'#1f6fb2',width:2},fill:'tozeroy',fillcolor:'rgba(31,111,178,.10)',hovertemplate:'%{y:.2f} m'}],
-  {...PL,yaxis:{...PL.yaxis,title:{text:'Cota na régua (m)',font:{size:11}},range:[0,topA]},xaxis:{...PL.xaxis,type:'date',tickformat:'%d/%m'},shapes:[...bands(Lr,topA),...hlines(Lr)],annotations:hlabels(Lr,N,'m')},CFG);
- const bx=bv.serie.map(p=>p[0]),by=bv.serie.map(p=>p[1]),Lb=L.BV,topB=FIT?Math.max(...by)*1.25:Math.max(Lb[3]*1.15,...by);
- Plotly.react('gBV',[{type:'scatter',mode:'lines',x:bx,y:by,line:{color:'#1f6fb2',width:2},fill:'tozeroy',fillcolor:'rgba(31,111,178,.10)',hovertemplate:'%{y:.0f} m³/s'}],
-  {...PL,yaxis:{...PL.yaxis,title:{text:'Vazão (m³/s)',font:{size:11}},range:[0,topB]},xaxis:{...PL.xaxis,type:'date',tickformat:'%d/%m'},shapes:[...bands(Lb,topB),...hlines(Lb)],annotations:hlabels(Lb,N,'m³/s')},CFG);
- document.getElementById('tbEst').innerHTML=d.estacoes.map(e=>`<tr><td>${esc(e.nome)}</td><td>${esc(e.cod)}</td><td>${esc(e.zona)}</td><td class="n">${e.ultimo?dtf(e.ultimo):'sem dado'}</td><td class="n">${f(e.nivel,2)}</td><td class="n">${f(e.vazao,1)}</td><td class="n">${f(e.chuva24,1)}</td><td><span class="st ${e.ok?'ok':''}">${e.ok?'Transmitindo':'Sem transmissão'}</span></td></tr>`).join('');
+ const sA=gaps(af.serie,2),ax=sA.map(p=>p[0]),ay=sA.map(p=>p[1]),vA=ay.filter(x=>x!=null),topA=FIT?Math.max(...vA)*1.25:Math.max(11.5,...vA);
+ Plotly.react('gAF',[{type:'scatter',mode:'lines',x:ax,y:ay,connectgaps:false,line:{color:'#1f6fb2',width:2},fill:'tozeroy',fillcolor:'rgba(31,111,178,.10)',hovertemplate:'%{y:.2f} m'}],
+  {...PL,yaxis:{...PL.yaxis,title:{text:'Cota na régua (m)',font:{size:11}},range:[0,topA]},xaxis:{...PL.xaxis,type:'date',tickformat:ZOOM<=72?'%d/%m %Hh':'%d/%m',range:xr(af.serie)},shapes:[...bands(Lr,topA),...hlines(Lr)],annotations:hlabels(Lr,N,'m')},CFG);
+ const sB=gaps(bv.serie,2),bx=sB.map(p=>p[0]),by=sB.map(p=>p[1]),vB=by.filter(x=>x!=null),Lb=L.BV,topB=FIT?Math.max(...vB)*1.25:Math.max(Lb[3]*1.15,...vB);
+ Plotly.react('gBV',[{type:'scatter',mode:'lines',x:bx,y:by,connectgaps:false,line:{color:'#1f6fb2',width:2},fill:'tozeroy',fillcolor:'rgba(31,111,178,.10)',hovertemplate:'%{y:.0f} m³/s'}],
+  {...PL,yaxis:{...PL.yaxis,title:{text:'Vazão (m³/s)',font:{size:11}},range:[0,topB]},xaxis:{...PL.xaxis,type:'date',tickformat:ZOOM<=72?'%d/%m %Hh':'%d/%m',range:xr(bv.serie)},shapes:[...bands(Lb,topB),...hlines(Lb)],annotations:hlabels(Lb,N,'m³/s')},CFG);
+ document.getElementById('tbEst').innerHTML=d.estacoes.map(e=>`<tr><td>${esc(e.nome)}</td><td>${esc(e.cod)}</td><td>${esc(e.zona)}</td><td class="n">${e.ultimo?dtf(e.ultimo):'sem dado'}</td><td class="n">${f(e.nivel,2)}</td><td class="n">${f(e.vazao,1)}</td><td class="n">${f(e.chuva24,1)}</td><td class="n">${e.chuva24_cob!=null?f(e.chuva24_cob*100,0)+'%':'sem dado'}</td><td><span class="st ${e.ok?'ok':''}">${e.ok?'Transmitindo':'Sem transmissão'}</span></td></tr>`).join('');
+ reguas(d);
  document.getElementById('tbLim').innerHTML=[1,2,3,4].map(i=>`<tr><td>${chip(i,N)}</td><td class="n">${f(L.AF[i-1],1)} m</td><td class="n">${f(L.BV[i-1])} m³/s</td><td class="n">${L.Z1[i-1]} / ${L.Z2[i-1]} / ${L.Z3[i-1]} mm</td><td>${SIT[i]}</td></tr>`).join('');
 }
+const RGC=['#7b8a94','#8f6b9a','#4d9a8a','#f08a24','#9a8a5a','#5f7d95','#1f6fb2'];
+function reguas(d){
+ if(!RG||!d.reguas)return;const cods=Object.keys(RG).filter(c=>d.reguas[c]);
+ const val=(sr,t)=>{let b=null;for(const p of sr)if(p[0]<=t)b=p;return b;};
+ document.getElementById('tbRg').innerHTML=cods.map(c=>{const r=RG[c],sr=d.reguas[c],u=sr[sr.length-1],age=u?ageOf(u[0]):null,ok=u&&age<=3;
+  let v24=null;if(u){const t0=new Date(new Date(u[0]+':00Z').getTime()-864e5).toISOString().slice(0,16),a=val(sr,t0);if(a&&(new Date(a[0]+':00Z')-new Date(t0+':00Z'))>-3*36e5)v24=(u[1]-a[1])*100;}
+  const rel=h=>(h-r.base)/(r.max.h-r.base),pc=u?Math.max(0,rel(u[1])):null,e20=r.eventos['2020'],e22=r.eventos['2022'];
+  const cor=pc==null?'#b8c2c8':pc>=.9?'#8e1537':pc>=.7?'#d93a26':pc>=.5?'#f08a24':'#2e9e5b';
+  return `<tr${ok?'':' class="velho"'}><td><b>${esc(r.nome)}</b><br><small>${esc(r.rio)} · ${c}</small></td><td>${r.zona}</td><td class="n">${u?f(u[1],2)+' m':'sem dado'}${(()=>{const e=d.estacoes.find(e=>e.cod===c);return e&&e.vazao!=null?`<br><small>${f(e.vazao,0)} m³/s</small>`:''})()}<br><small>${u?(ok?'às '+hm(u[0]):'leitura de '+dtf(u[0])):''}</small></td>
+   <td class="n">${v24==null?'sem dado':(v24>=0?'+':'')+f(v24,0)+' cm'}</td><td class="n">${e20?f(e20.h,2)+' m':'sem dado'}</td><td class="n">${e22?f(e22.h,2)+' m':'sem dado'}</td>
+   <td class="n">${f(r.max.h,2)} m<br><small>${ddm(r.max.d)}/${r.max.d.slice(0,4)} · registro desde ${r.inicio.slice(5)}/${r.inicio.slice(0,4)}</small></td>
+   <td><div class="pbar"><i style="width:${Math.min(100,(pc||0)*100)}%;background:${cor}"></i>${e20?`<s style="left:${Math.min(100,rel(e20.h)*100)}%" title="2020"></s>`:''}${e22?`<s style="left:${Math.min(100,rel(e22.h)*100)}%" title="2022"></s>`:''}</div><small>${pc==null?'sem dado':f(pc*100,0)+'% da subida até a maior cheia'}</small></td></tr>`;}).join('');
+ const tr=cods.map((c,i)=>({type:'scatter',mode:'lines',name:`${RG[c].nome} (${RG[c].zona})`,x:gaps(d.reguas[c],2).map(p=>p[0]),y:gaps(d.reguas[c],2).map(p=>p[1]==null?null:(p[1]-RG[c].base)/(RG[c].max.h-RG[c].base)*100),connectgaps:false,
+  line:{color:RGC[i%RGC.length],width:c==='40740000'||c==='40710001'?2.6:1.6},hovertemplate:`${esc(RG[c].nome)}: %{y:.0f}%<extra></extra>`}));
+ Plotly.react('gRg',tr,{...PL,hovermode:'x unified',showlegend:true,legend:{orientation:'h',y:-0.2},yaxis:{...PL.yaxis,title:{text:'% da subida até a maior cheia',font:{size:11}},range:[-5,110]},xaxis:{...PL.xaxis,type:'date',tickformat:'%d/%m'},
+  shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:100,y1:100,line:{color:'#8e1537',width:1.5,dash:'dash'}}]},CFG);
+}
+let RG=null;fetch('reguas.json').then(r=>r.json()).then(j=>{RG=j;if(D)reguas(D);}).catch(()=>{});
 let BASE=null,busy=false;
 async function load(){
  if(busy)return;busy=true;
@@ -201,6 +258,8 @@ async function load(){
 }
 document.getElementById('btnUpd').addEventListener('click',()=>load());
 for(const bt of document.querySelectorAll('.fit'))bt.addEventListener('click',()=>{FIT=!FIT;for(const x of document.querySelectorAll('.fit')){x.textContent=FIT?'Mostrar escala dos limites':'Ampliar escala aos dados';x.setAttribute('aria-pressed',FIT)}if(D)render(D);});
+for(const b of document.querySelectorAll('.zoom button'))b.addEventListener('click',()=>{ZOOM=+b.dataset.z;for(const x of document.querySelectorAll('.zoom button'))x.classList.toggle('on',+x.dataset.z===ZOOM);if(D)render(D);});
+window.LAY={F:1,P:1,M:1};for(const c of document.querySelectorAll('#lay input'))c.addEventListener('change',()=>{LAY[c.dataset.l]=c.checked?1:0;if(D)render(D);});
 load();setInterval(load,5*60*1000);
 }
 </script>
