@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilo.css">
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="aovivo.js"></script>
 </head>
 <body>
 <header class="top"><div class="wrap hdr">
@@ -130,7 +131,7 @@ function gauge(v,lim,n){const top=lim[3]*1.25,W=220,H=128,cx=110,cy=112,R=92,r=7
  return `<svg viewBox="0 -12 ${W} ${H+12}" class="gauge">${s}</svg>`;}
 function render(d){
  const N=d.niveis_nomes,L=d.limites,n=d.nivel.atual,age=(Date.now()-new Date(d.atualizado+'-03:00').getTime())/36e5;
- document.getElementById('upd').textContent=`Dados de ${dtf(d.atualizado)}`;
+ document.getElementById('upd').textContent=d.ao_vivo?`Ao vivo · régua lida às ${dtf(d.af.t).slice(-5)} · verificado às ${dtf(d.atualizado).slice(-5)}`:`Dados de ${dtf(d.atualizado)} · conectando à telemetria`;
  document.getElementById('dot').className='dot'+(age>1?' old':'');
  const w=document.getElementById('warn');w.hidden=age<=1;w.textContent=age>1?`Os dados têm ${f(age,1)} horas. A rotina de atualização ou a telemetria pode estar fora do ar.`:'';
  const bn=document.getElementById('banner');bn.style.background=HEX[n];bn.style.color=TXT[n];
@@ -190,14 +191,17 @@ function render(d){
  document.getElementById('tbEst').innerHTML=d.estacoes.map(e=>`<tr><td>${esc(e.nome)}</td><td>${esc(e.cod)}</td><td>${esc(e.zona)}</td><td class="n">${e.ultimo?dtf(e.ultimo):'sem dado'}</td><td class="n">${f(e.nivel,2)}</td><td class="n">${f(e.vazao,1)}</td><td class="n">${f(e.chuva24,1)}</td><td><span class="st ${e.ok?'ok':''}">${e.ok?'Transmitindo':'Sem transmissão'}</span></td></tr>`).join('');
  document.getElementById('tbLim').innerHTML=[1,2,3,4].map(i=>`<tr><td>${chip(i,N)}</td><td class="n">${f(L.AF[i-1],1)} m</td><td class="n">${f(L.BV[i-1])} m³/s</td><td class="n">${L.Z1[i-1]} / ${L.Z2[i-1]} / ${L.Z3[i-1]} mm</td><td>${SIT[i]}</td></tr>`).join('');
 }
-async function load(force){
- try{const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);const d=await r.json();
-  if(force||d.atualizado!==last){last=d.atualizado;D=d;render(d);}}
- catch(e){const w=document.getElementById('warn');w.hidden=false;w.textContent='Não foi possível ler os dados agora. Nova tentativa em 3 minutos.';}
+let BASE=null,busy=false;
+async function load(){
+ if(busy)return;busy=true;
+ try{const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});if(r.ok){BASE=await r.json();if(!D){D=BASE;render(D);}}}catch(e){}
+ if(!BASE){const w=document.getElementById('warn');w.hidden=false;w.textContent='Não foi possível ler os dados agora. Nova tentativa em 5 minutos.';busy=false;return;}
+ try{D=await AoVivo.atualizar(BASE);render(D);}catch(e){console.error(e);}
+ busy=false;
 }
-document.getElementById('btnUpd').addEventListener('click',()=>load(true));
+document.getElementById('btnUpd').addEventListener('click',()=>load());
 for(const bt of document.querySelectorAll('.fit'))bt.addEventListener('click',()=>{FIT=!FIT;for(const x of document.querySelectorAll('.fit')){x.textContent=FIT?'Mostrar escala dos limites':'Ampliar escala aos dados';x.setAttribute('aria-pressed',FIT)}if(D)render(D);});
-load(true);setInterval(()=>load(false),3*60*1000);
+load();setInterval(load,5*60*1000);
 }
 </script>
 </body>
