@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilo.css">
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="aovivo.js"></script>
 </head>
 <body>
 <header class="top"><div class="wrap hdr">
@@ -143,6 +144,8 @@ function chuva(){
 (async()=>{
  try{[D,H]=await Promise.all([fetch('data.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()),fetch('historico.json').then(r=>r.json())]);}
  catch(e){$('warn').hidden=false;$('warn').textContent='Não foi possível carregar os dados.';return;}
+ $('upd').textContent='Conectando à telemetria';
+ try{D=await AoVivo.atualizar(D);}catch(e){console.error(e);}
  $('upd').textContent='Dados de '+new Date(D.atualizado+'-03:00').toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
  $('presetsH').innerHTML=H.eventos.map((e,i)=>`<button type="button" data-p="${i}">${e.ano} · ${f(e.cota,2)} m</button>`).join('');
  for(const b of document.querySelectorAll('[data-p]'))b.addEventListener('click',()=>{preset(b.dataset.p);$('res').scrollIntoView({behavior:'smooth',block:'center'});});
