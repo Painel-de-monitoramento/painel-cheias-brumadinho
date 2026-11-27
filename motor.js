@@ -62,8 +62,11 @@
     const L = inp.limites, zn = {}, zl = {};
     for (const z of ZS) {
       const Z = (inp.zonas || {})[z] || {}, lim = L[z].map(t => t - adj); zl[z] = lim;
-      const est = Z.P5 == null || !(Z.cob5 > 0) ? 'indisponivel' : Z.cob5 >= COB_OK ? 'ok' : 'parcial';
-      zn[z] = {nivel: est === 'indisponivel' ? null : nivel(Z.P5, lim), estado: est, P5: Z.P5 == null ? null : r1(Z.P5), cob5: Z.cob5 ?? 0};
+      let est = Z.P5 == null || !(Z.cob5 > 0) ? 'indisponivel' : Z.cob5 >= COB_OK ? 'ok' : 'parcial';
+      // janela de 5 dias encerrada há mais de 3 h: o valor ainda pode elevar o nível, mas não conta como zona completa
+      const idf = Z.fim ? idade(Z.fim, inp.agora) : null;
+      if (est === 'ok' && idf != null && idf > IDADE_MAX_H) est = 'desatualizada';
+      zn[z] = {nivel: est === 'indisponivel' ? null : nivel(Z.P5, lim), estado: est, P5: Z.P5 == null ? null : r1(Z.P5), cob5: Z.cob5 ?? 0, idade_fim_h: r1(idf)};
     }
     const disp = ZS.filter(z => zn[z].estado !== 'indisponivel'), ord = disp.map(z => zn[z].nivel).sort((a, b) => b - a);
     const zOk = ZS.filter(z => zn[z].estado === 'ok').length;
