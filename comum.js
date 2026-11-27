@@ -14,7 +14,7 @@ window.C = (() => {
   const ddm = s => s.slice(8, 10) + '/' + s.slice(5, 7);
   const idade = t => { const x = ms(t); return Number.isFinite(x) ? (Date.now() - x) / 36e5 : null; };
   const idh = h => h == null ? '' : h < 0 ? 'horário no futuro' : h < 1 ? `há ${Math.round(h * 60)} min` : h < 48 ? `há ${f(h, 1)} h` : `há ${f(h / 24, 0)} dias`;
-  const FRESCOR = {atualizado: 'Atualizado', atrasado: 'Atrasado', desatualizado: 'Desatualizado', indisponivel: 'Indisponível para decisão', futuro: 'Horário no futuro', 'sem dado': 'Sem dado'};
+  const FRESCOR = {atualizado: 'Em dia', atrasado: 'Atraso na fonte', desatualizado: 'Atraso na fonte', indisponivel: 'Indisponível para decisão', futuro: 'Horário no futuro', 'sem dado': 'Sem dado'};
   const selo = fr => `<span class="fr fr-${esc(fr || 'sem dado').replace(' ', '-')}">${esc(FRESCOR[fr] || fr || 'Sem dado')}</span>`;
 
   // leitura de arquivo do próprio site com tempo limite e verificação de JSON
