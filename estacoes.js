@@ -33,7 +33,7 @@ function render(d) {
 }
 async function load() {
   if (busy) return; busy = true;
-  try { BASE = await C.json('data.json'); falha = null; D = AoVivo.reavaliar(BASE, BASE); render(D); }
+  try { BASE = await C.snapshot(); falha = null; D = AoVivo.reavaliar(BASE, BASE); render(D); }
   catch (err) { falha = err.message; if (D) render(D); else { $('warn').hidden = false; $('warn').textContent = `Não foi possível ler os dados (${err.message}).`; } busy = false; return; }
   try { D = await AoVivo.atualizar(BASE); render(D); } catch (err) { console.error(err); falha = 'telemetria ao vivo: ' + err.message; render(D); }
   busy = false;
