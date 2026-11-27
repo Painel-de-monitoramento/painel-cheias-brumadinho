@@ -1,7 +1,7 @@
 # Cliente da Plataforma de Entrega de Dados (PED) do CEMADEN, usado pelo coletor para medir a chuva da Z1.
 # Credenciais somente por variáveis de ambiente (segredos do GitHub): CEMADEN_USUARIO e CEMADEN_SENHA.
 # Nunca grava nem imprime o token ou a senha. Fonte obrigatória: "DADOS DA REDE OBSERVACIONAL DO CEMADEN/MCTIC".
-# Formato verificado em consulta real (27/11/2026): /pcds/dados_rede devolve CSV com separador ";" e horário UTC;
+# Formato verificado em consulta real (27/11/2026): /pcds/dados_rede aceita no máximo 1 dia por consulta e devolve CSV com separador ";" e horário UTC;
 # o sensor "chuva" traz a chuva acumulada desde o registro anterior (a cada 10 min com chuva, a cada hora sem chuva).
 # Uso de diagnóstico (não altera nada): python cemaden.py --diagnostico
 import csv, io, json, os, sys, time, urllib.request, urllib.parse, datetime as dt
@@ -81,6 +81,15 @@ def parse_csv(tx):
 def _fmt_utc(t_local): return (t_local - UTC_PARA_LOCAL).strftime('%Y%m%d%H%M')
 
 
+MAX_JANELA = dt.timedelta(hours=23, minutes=55)   # a PED recusa intervalos acima de 1 dia (HTTP 400, verificado em 27/11/2026)
+
+
+def _fatias(janelas):
+    for a, b in janelas:
+        while a < b:
+            c = min(b, a + MAX_JANELA); yield a, c; a = c
+
+
 def atualizar(cache, agora, log=print):
     """Baixa os registros recentes e um lote do histórico antigo; devolve (cache, situação). Nunca levanta exceção."""
     cache = cache or {}
@@ -95,11 +104,14 @@ def atualizar(cache, agora, log=print):
         retro = dt.datetime.fromisoformat(cache['retro_ate']) if cache.get('retro_ate') else ini
         if retro > agora - dt.timedelta(days=JANELA_DIAS):
             janelas.append((retro - dt.timedelta(days=LOTE_RETRO_DIAS), retro))
-        novos = 0
+        novos = 0; falhas = []
         for zona, muns in MUNICIPIOS.items():
             for cod_ibge in muns:
-                for a, b in janelas:
-                    tx = get(tk, '/pcds/dados_rede', uf='MG', municipio=cod_ibge, rede=REDE, inicio=_fmt_utc(a), fim=_fmt_utc(b))
+                for a, b in _fatias(janelas):
+                    try:
+                        tx = get(tk, '/pcds/dados_rede', uf='MG', municipio=cod_ibge, rede=REDE, inicio=_fmt_utc(a), fim=_fmt_utc(b))
+                    except Exception as e:
+                        falhas.append(e); log('CEMADEN: consulta falhou', cod_ibge, a.isoformat(timespec='minutes'), type(e).__name__); continue
                     sit['consultas'] += 1
                     if not isinstance(tx, str): log('CEMADEN: resposta inesperada para', cod_ibge, str(tx)[:120]); continue
                     for r in parse_csv(tx):
@@ -109,6 +121,7 @@ def atualizar(cache, agora, log=print):
                         lst = reg.setdefault(r['cod'], {}); k = r['t'].strftime('%Y-%m-%dT%H:%M')
                         if k not in lst: novos += 1
                         lst[k] = r['valor']
+        if falhas and not sit['consultas']: raise falhas[-1]
         if len(janelas) > 1: cache['retro_ate'] = janelas[1][0].isoformat(timespec='minutes')
         elif not cache.get('retro_ate'): cache['retro_ate'] = ini.isoformat(timespec='minutes')
         lim = (agora - dt.timedelta(days=JANELA_DIAS + 1)).strftime('%Y-%m-%dT%H:%M')
