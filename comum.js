@@ -1,5 +1,14 @@
 // Funções comuns às três abas: formatação, leitura de arquivos com tempo limite, gráficos com alternativa em texto,
 // frescor dos dados e confirmação da publicação. Todo texto de fonte externa passa por esc() ou textContent.
+// Proteção contra incorporação em página de terceiros (clickjacking). O GitHub Pages não permite enviar o cabeçalho
+// frame-ancestors (e a diretiva é ignorada em <meta>), então a página se recusa a funcionar dentro de um frame de outro site.
+(() => {
+  let fora = false; try { fora = window.top !== window.self && window.top.location.origin !== window.location.origin; } catch (e) { fora = window.top !== window.self; }
+  if (fora) {
+    document.documentElement.style.display = 'none';
+    try { window.top.location.replace(window.location.href); } catch (e) { /* navegação bloqueada pelo frame: a página continua oculta */ }
+  }
+})();
 window.C = (() => {
   const HEX = ['#2e9e5b', '#f2c230', '#f08a24', '#d93a26', '#8e1537'];
   const TXT = ['#ffffff', '#111111', '#111111', '#ffffff', '#ffffff'];
@@ -27,6 +36,29 @@ window.C = (() => {
       try { return JSON.parse(tx); } catch (e) { throw new Error(`conteúdo inválido em ${url}`); }
     } catch (e) { throw e.name === 'AbortError' ? new Error(`${url} sem resposta em ${ms_ / 1000} s`) : e; }
     finally { clearTimeout(to); }
+  }
+
+  // snapshot (data.json) verificado antes de qualquer exibição: estrutura mínima, versão e critérios do estudo.
+  // Os limites e o ajuste de solo úmido são os do RT-BRU-HID-001 Rev04; um data.json com critérios diferentes
+  // (corrompido ou adulterado) é recusado e a página mostra erro, nunca um nível calculado com outros critérios.
+  const CRITERIOS = {limites: {Z1: [140, 185, 235, 260], Z2: [155, 210, 260, 290], Z3: [170, 230, 285, 320], BV: [300, 600, 950, 1150], AF: [5, 7, 9, 10.5]}, ajuste_umido: 30};
+  function verificarSnapshot(d) {
+    const e = [];
+    if (!d || typeof d !== 'object') return ['conteúdo vazio'];
+    if (!Number.isInteger(d.versao) || d.versao < 3) e.push('versão do formato não suportada');
+    if (typeof d.coleta !== 'string' || !Number.isFinite(ms(d.coleta))) e.push('horário da coleta inválido');
+    else if (ms(d.coleta) > Date.now() + 10 * 60e3) e.push('horário da coleta no futuro');
+    if (!d.nivel || !['valido', 'degradado', 'indeterminado'].includes(d.nivel.status)) e.push('situação do nível inválida');
+    if (!d.af || !d.bv || !d.solo || !Array.isArray(d.alertas) || !Array.isArray(d.estacoes)) e.push('campos obrigatórios ausentes');
+    for (const z of ['Z1', 'Z2', 'Z3']) if (!d.zonas || !d.zonas[z]) e.push(`zona ${z} ausente`);
+    for (const [k, v] of Object.entries(CRITERIOS.limites)) if (!d.limites || JSON.stringify((d.limites[k] || []).map(Number)) !== JSON.stringify(v)) e.push(`limites de ${k} diferentes dos do estudo`);
+    if (d.ajuste_umido !== CRITERIOS.ajuste_umido) e.push('ajuste de solo úmido diferente do estudo');
+    return e;
+  }
+  async function snapshot() {
+    const d = await json('data.json'), e = verificarSnapshot(d);
+    if (e.length) throw new Error(`data.json recusado na verificação (${e.slice(0, 3).join('; ')})`);
+    return d;
   }
 
   // gráficos: se a biblioteca não carregar, o painel mostra o resumo em texto e segue funcionando
@@ -88,5 +120,5 @@ window.C = (() => {
     {type: 'scatter', mode: 'lines', x: T.x, y: T.hi, line: {width: 0}, hoverinfo: 'skip', showlegend: false},
     ...(T.faixa ? [{type: 'scatter', mode: 'lines', x: T.x, y: T.lo, fill: 'tonexty', fillcolor: 'rgba(31,111,178,.20)', line: {width: 0}, name: 'Faixa provável da projeção (80%)', hovertemplate: `Faixa provável: %{y:.${nd}f} ${u}<extra></extra>`}] : []),
     {type: 'scatter', mode: 'lines', x: T.x, y: T.c, name: nome, line: {color: '#1f5fbf', width: 3, dash: 'dash'}, hovertemplate: `Projeção: %{y:.${nd}f} ${u}<extra></extra>`}] : [];
-  return {tendencia, trTraces, HEX, TXT, CINZA, esc, ok, f, ms, dtf, hm, ddm, idade, idh, selo, FRESCOR, json, plot, PL, CFG, estreito, publicacao, temPlotly};
+  return {snapshot, verificarSnapshot, CRITERIOS, tendencia, trTraces, HEX, TXT, CINZA, esc, ok, f, ms, dtf, hm, ddm, idade, idh, selo, FRESCOR, json, plot, PL, CFG, estreito, publicacao, temPlotly};
 })();
