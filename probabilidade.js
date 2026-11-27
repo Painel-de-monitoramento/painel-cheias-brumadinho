@@ -34,14 +34,17 @@ function lerConjunto(js, nomeModelo, fim) {
   if (chaves.length < 10) throw new Error('conjunto com poucos membros');
   const tempo = locs[0].hourly.time, out = {modelo: nomeModelo, membros: chaves.length, z: {}};
   ZS.forEach((z, zi) => {
-    out.z[z] = chaves.map(k => { const dia = {};
+    out.z[z] = chaves.map(k => { const dia = {}, esp = {}, tem = {};
       for (let h = 0; h < tempo.length; h++) {
         const ini = new Date(Date.parse(tempo[h] + ':00Z') - 36e5).toISOString().slice(0, 16);   // valor da hora anterior ao rótulo
         if (ini < fim) continue;                                                                     // horas já cobertas pela medição
+        const dd = ini.slice(0, 10); esp[dd] = (esp[dd] || 0) + 1;
         const vs = [0, 1, 2, 3].map(p => locs[zi * 4 + p].hourly[k][h]).filter(v => v != null);
         if (vs.length < 2) continue;
-        const dd = ini.slice(0, 10); dia[dd] = (dia[dd] || 0) + vs.reduce((a, b) => a + b, 0) / vs.length;
+        tem[dd] = (tem[dd] || 0) + 1; dia[dd] = (dia[dd] || 0) + vs.reduce((a, b) => a + b, 0) / vs.length;
       }
+      // dia com menos de 90% das horas previstas não entra (a soma subestimaria a chuva); o cálculo para nesse dia
+      for (const dd of Object.keys(esp)) if ((tem[dd] || 0) < Math.ceil(0.9 * esp[dd])) dia[dd] = null;
       return dia; });
   });
   return out;
@@ -91,9 +94,11 @@ function calcular(D, H, E) {
       for (const z of ZS) {
         let s = 0;
         for (let j = k - 4; j <= k; j++) { const d = somaDia(hoje, j); const o = j <= 0 ? obs[z][d] : 0, p = j >= 0 ? E.z[z][m][d] : 0;
-          if (j >= 0 && p == null && !(j === 0)) { ok = false; break; } s += o + (p || 0); }
+          // falta de previsão interrompe o cálculo; exceção: hoje sem nenhuma hora a prever (só medição)
+          if (j >= 0 && p == null && !(j === 0 && !(d in E.z[z][m]))) { ok = false; break; } s += o + (p || 0); }
         if (!ok) break;
-        num += s * M.areas[z]; lz.push(nivel(s, D.zonas[z].limites.map(t => t - adj)));
+        // limites do quadro (solo normal) com o desconto aplicado uma única vez; D.zonas[z].limites já vem descontado
+        num += s * M.areas[z]; lz.push(nivel(s, L[z].map(t => t - adj)));
       }
       if (!ok) { pb.push(null); rg.push(null); mu.push(null); continue; }
       const P = num / areaT; lz.sort((a, b) => b - a);
@@ -113,6 +118,12 @@ function calcular(D, H, E) {
     for (let m = 0; m < nm; m++) { const r = out.regra[m].slice(0, k + 1).filter(v => v != null); if (!r.length) continue; n++; if (Math.max(...r) >= i + 1) s++; }
     return n ? s / n : null; };
   out.pCota = dias.map((_, k) => L.AF.map((_, i) => k <= out.ultimo ? acum(k, i) : null));
+  // fora do domínio: cenários com chuva abaixo da menor enchente registrada não têm probabilidade calculável pelo modelo
+  // (calibrado só com enchentes). Nesses casos o painel mostra "risco baixo", nunca 0%.
+  const fora = (k, i) => { if (h0 >= L.AF[i]) return false; let abaixo = 0;
+    for (let m = 0; m < nm; m++) { let tem = false, dentro = false; for (let j = 0; j <= k; j++) { if (out.Pb[m][j] == null) continue; tem = true; if (out.mu[m][j] != null) dentro = true; } if (tem && !dentro) abaixo++; }
+    return abaixo > 0; };
+  out.fora = dias.map((_, k) => L.AF.map((_, i) => k <= out.ultimo ? fora(k, i) : false));
   out.pRegra = dias.map((_, k) => L.AF.map((_, i) => k <= out.ultimo ? acumRegra(k, i) : null));
   // cota provável por dia: mistura dos cenários com o erro do modelo
   const cota = Q => interp(Q, H.curva.Q, H.curva.h, true);
@@ -127,67 +138,49 @@ function calcular(D, H, E) {
 
 // ---------- apresentação
 if (typeof document === 'undefined') { module.exports = {calcular, lerConjunto, phi, invphi}; return; }
-const {HEX, TXT, esc, f, dtf, hm, PL, CFG, plot} = C, $ = id => document.getElementById(id);
+const {HEX, TXT, esc, f, dtf, hm} = C, $ = id => document.getElementById(id);
 const N = ['Normal', 'Atenção', 'Alerta', 'Alerta máximo', 'Emergência'];
 const SIT = ['', 'Água na planície e nas áreas baixas da beira-rio', 'Edificações da beira-rio atingidas', 'Centro alagado (referência 2012)', 'Nível de 2022 ou superior'];
 const CLS = [[0.05, 'Muito baixa', '#2e9e5b'], [0.2, 'Baixa', '#7cb342'], [0.5, 'Moderada', '#f2c230'], [0.8, 'Alta', '#f08a24'], [1.01, 'Muito alta', '#d93a26']];
 const classe = p => CLS.find(c => p < c[0]);
 const pct = p => p == null ? 'sem dado' : p < 0.005 ? 'menos de 1%' : p > 0.995 ? 'mais de 99%' : f(p * 100, 0) + '%';
 const pcc = p => p == null ? 'sem dado' : p < 0.005 ? '< 1%' : p > 0.995 ? '> 99%' : f(p * 100, 0) + '%';
+// cenários abaixo da menor chuva de enchente registrada: o modelo não estima a probabilidade; mostrado como risco baixo, nunca 0%
+const FORA = 'Risco baixo*';
+const pctF = (p, fo) => fo && (p == null || p < 0.01) ? 'baixa (chuva prevista abaixo da menor chuva de enchente registrada)' : pct(p);
+const pccF = (p, fo) => fo && (p == null || p < 0.01) ? FORA : pcc(p);
+const classeF = (p, fo) => fo && (p == null || p < 0.01) ? [0, 'Abaixo do histórico', '#2e9e5b'] : classe(p ?? 0);
 const dm = d => `${d.slice(8)}/${d.slice(5, 7)}`;
 let D = null, H = null, E = null, falhaE = null, busy = false;
 
 function render() {
   let R;
   try { R = calcular(D, H, E); } catch (e) { $('warn').hidden = false; $('warn').textContent = `Não foi possível calcular a probabilidade: ${e.message}.`; return; }
+  if (R.ultimo < 0) { $('warn').hidden = false; $('warn').textContent = 'Não foi possível calcular a probabilidade: a previsão disponível não cobre nem o dia de hoje com horas suficientes.'; return; }
   const k5 = Math.min(4, R.ultimo), k10 = Math.min(9, R.ultimo), d5 = R.dias[k5], d10 = R.dias[k10];
+  // horizonte efetivamente coberto (hoje conta como o 1º dia): o título nunca promete mais dias do que a previsão cobre
+  const n5 = k5 + 1, n10 = k10 + 1, txd = n => `${n} ${n === 1 ? 'dia' : 'dias'}`;
+  const fo5 = R.fora[k5], fo10 = R.fora[k10];
   const w = [];
   if (falhaE) w.push(`Previsão por conjunto indisponível (${falhaE}). ${E.reserva ? 'O cálculo usa a previsão determinística do painel: a incerteza da chuva não está representada e a probabilidade fica menos confiável.' : `Usando o conjunto obtido em ${dtf(new Date(E.obtido).toLocaleString('sv', {timeZone: 'America/Sao_Paulo'}))}.`}`);
-  if (R.ultimo < 9) w.push(`A previsão disponível cobre só até ${dm(R.dias[R.ultimo])}; o período de 10 dias foi encurtado.`);
+  if (R.ultimo < 9) w.push(`A previsão disponível cobre só até ${dm(R.dias[R.ultimo])}; o período foi encurtado para ${txd(n10)}.`);
+  if ([...fo5, ...fo10].some(Boolean)) w.push(`* Risco baixo: em parte ou em todos os cenários a chuva prevista fica abaixo de ${PMIN} mm, faixa sem enchente no histórico, onde o modelo não calcula probabilidade. Isso não significa probabilidade zero.`);
   $('warn').hidden = !w.length; $('warn').textContent = w.join(' ');
-  $('fonte').textContent = `Chuva medida até ${hm(D.zonas.Z1.fim_acumulado)} de ${dm(R.hoje)}, previsão ${E.reserva ? '' : 'por conjunto '}${E.modelo}${E.membros > 1 ? ` com ${E.membros} cenários` : ''}, régua de Alberto Flores em ${f(R.h0, 2)} m e vazão de ${f(R.qb, 0)} m³/s, solo ${R.umido ? 'úmido (limites de chuva reduzidos em ' + R.adj + ' mm)' : 'normal'}.`;
-  $('h5').textContent = `Próximos 5 dias (até ${dm(d5)})`; $('h10').textContent = `Próximos 10 dias (até ${dm(d10)})`;
+  $('fonte').textContent = `Chuva medida até ${hm(D.zonas.Z1.fim_acumulado)} de ${dm(R.hoje)}, ${E.reserva ? E.modelo : 'previsão por conjunto ' + E.modelo}${E.membros > 1 ? ` com ${E.membros} cenários` : ''}, régua de Alberto Flores em ${f(R.h0, 2)} m e vazão de ${f(R.qb, 0)} m³/s, solo ${R.umido ? 'úmido (limites de chuva reduzidos em ' + R.adj + ' mm)' : 'normal'}.`;
+  $('h5').textContent = `Próximos ${txd(n5)} (até ${dm(d5)})`; $('h10').textContent = `Próximos ${txd(n10)} (até ${dm(d10)})`;
   // cartões principais: Atenção (rio sai da calha) e Alerta (edificações atingidas)
-  const card = (tit, sub, p) => { const c = classe(p); return `<div class="pb-card" style="border-top-color:${c[2]}"><span>${esc(tit)}</span><b>${pcc(p)}</b><i style="background:${c[2]};color:${c[2] === '#f2c230' ? '#111' : '#fff'}">${c[1]}</i><small>${esc(sub)}</small></div>`; };
-  $('head').innerHTML = card(`Rio sai da calha em 5 dias`, `Atenção, régua ≥ ${f(D.limites.AF[0], 1)} m, até ${dm(d5)}`, R.pCota[k5][0]) + card(`Edificações atingidas em 5 dias`, `Alerta, régua ≥ ${f(D.limites.AF[1], 1)} m, até ${dm(d5)}`, R.pCota[k5][1])
-    + card(`Rio sai da calha em 10 dias`, `Atenção, régua ≥ ${f(D.limites.AF[0], 1)} m, até ${dm(d10)}`, R.pCota[k10][0]) + card(`Edificações atingidas em 10 dias`, `Alerta, régua ≥ ${f(D.limites.AF[1], 1)} m, até ${dm(d10)}`, R.pCota[k10][1]);
+  const card = (tit, sub, p, fo) => { const c = classeF(p, fo); return `<div class="pb-card" style="border-top-color:${c[2]}"><span>${esc(tit)}</span><b>${esc(pccF(p, fo))}</b><i style="background:${c[2]};color:${c[2] === '#f2c230' ? '#111' : '#fff'}">${c[1]}</i><small>${esc(sub)}</small></div>`; };
+  $('head').innerHTML = card(`Rio sai da calha em ${txd(n5)}`, `Atenção, régua ≥ ${f(D.limites.AF[0], 1)} m, até ${dm(d5)}`, R.pCota[k5][0], fo5[0]) + card(`Edificações atingidas em ${txd(n5)}`, `Alerta, régua ≥ ${f(D.limites.AF[1], 1)} m, até ${dm(d5)}`, R.pCota[k5][1], fo5[1])
+    + card(`Rio sai da calha em ${txd(n10)}`, `Atenção, régua ≥ ${f(D.limites.AF[0], 1)} m, até ${dm(d10)}`, R.pCota[k10][0], fo10[0]) + card(`Edificações atingidas em ${txd(n10)}`, `Alerta, régua ≥ ${f(D.limites.AF[1], 1)} m, até ${dm(d10)}`, R.pCota[k10][1], fo10[1]);
   const c5 = R.chuva[k5], c10 = R.chuva[k10], pico = R.chuva.slice(0, k10 + 1).reduce((a, c, k) => c && (!a || c[1] > a[1][1]) ? [k, c] : a, null);
-  $('resumo').textContent = `Até ${dm(d5)}, a probabilidade de a régua de Alberto Flores atingir ${f(D.limites.AF[0], 1)} m (água na planície) é ${classe(R.pCota[k5][0])[1].toLowerCase()}, de ${pct(R.pCota[k5][0])}, e a de atingir ${f(D.limites.AF[1], 1)} m (edificações da beira-rio) é de ${pct(R.pCota[k5][1])}. `
-    + `Em 10 dias essas probabilidades são de ${pct(R.pCota[k10][0])} e ${pct(R.pCota[k10][1])}. `
+  $('resumo').textContent = `Até ${dm(d5)}, a probabilidade de a régua de Alberto Flores atingir ${f(D.limites.AF[0], 1)} m (água na planície) é ${fo5[0] && R.pCota[k5][0] < 0.01 ? pctF(R.pCota[k5][0], true) : `${classe(R.pCota[k5][0])[1].toLowerCase()}, de ${pct(R.pCota[k5][0])}`}, e a de atingir ${f(D.limites.AF[1], 1)} m (edificações da beira-rio) é ${fo5[1] && R.pCota[k5][1] < 0.01 ? pctF(R.pCota[k5][1], true) : `de ${pct(R.pCota[k5][1])}`}. `
+    + `Em ${txd(n10)} essas probabilidades são ${pctF(R.pCota[k10][0], fo10[0])} e ${pctF(R.pCota[k10][1], fo10[1])}. `
     + (pico ? `A maior chuva de 5 dias prevista na bacia ocorre em ${dm(R.dias[pico[0]])}, com ${f(pico[1][1], 0)} mm no cenário central e ${f(pico[1][2], 0)} mm em 1 a cada 10 cenários, ${pico[1][2] < PMIN ? 'abaixo' : pico[1][1] < PMIN ? 'com o cenário central abaixo, mas os cenários mais chuvosos acima' : 'acima'} dos ${PMIN} mm a partir dos quais houve enchente no histórico.` : '');
   // tabela por nível
-  $('tbP').innerHTML = [0, 1, 2, 3].map(i => { const cel = p => { const c = classe(p ?? 0); return `<td class="n"><b>${pcc(p)}</b> <span class="pbc" style="background:${c[2]};color:${c[2] === '#f2c230' ? '#111' : '#fff'}">${c[1]}</span></td>`; };
-    return `<tr><td><span class="chip" style="background:${HEX[i + 1]};color:${TXT[i + 1]}">${N[i + 1]}</span><br><small>régua ≥ ${f(D.limites.AF[i], 1)} m</small></td><td>${SIT[i + 1]}</td>${cel(R.pCota[k5][i])}${cel(R.pCota[k10][i])}</tr>`; }).join('')
+  $('tbP').innerHTML = [0, 1, 2, 3].map(i => { const cel = (p, fo) => { const c = classeF(p, fo); return `<td class="n"><b>${esc(pccF(p, fo))}</b> <span class="pbc" style="background:${c[2]};color:${c[2] === '#f2c230' ? '#111' : '#fff'}">${c[1]}</span></td>`; };
+    return `<tr><td><span class="chip" style="background:${HEX[i + 1]};color:${TXT[i + 1]}">${N[i + 1]}</span><br><small>régua ≥ ${f(D.limites.AF[i], 1)} m</small></td><td>${SIT[i + 1]}</td>${cel(R.pCota[k5][i], fo5[i])}${cel(R.pCota[k10][i], fo10[i])}</tr>`; }).join('')
     + `<tr class="pbr"><td><b>Regra de chuva</b><br><small>aciona Atenção</small></td><td>Chuva de 5 dias no limite de Atenção em duas zonas (gatilho antecipado do estudo)</td><td class="n"><b>${pcc(R.pRegra[k5][0])}</b></td><td class="n"><b>${pcc(R.pRegra[k10][0])}</b></td></tr>`
     + `<tr class="pbr"><td><b>Regra de chuva</b><br><small>aciona Alerta</small></td><td>Chuva de 5 dias no limite de Alerta em duas zonas</td><td class="n"><b>${pcc(R.pRegra[k5][1])}</b></td><td class="n"><b>${pcc(R.pRegra[k10][1])}</b></td></tr>`;
-  graficos(R);
-}
-
-function graficos(R) {
-  const e = C.estreito(), k = R.ultimo, x = R.dias.slice(0, k + 1), xl = x.map((d, i) => i === 0 ? 'Hoje' : dm(d));
-  const leg = {orientation: 'h', x: 0, y: -0.16, yanchor: 'top', traceorder: 'normal', font: {size: 12}}, mg = {...PL.margin, b: e ? 110 : 80, r: 16};
-  const xa = {...PL.xaxis, type: 'category', tickangle: 0, tickfont: {size: e ? 10 : 12}};
-  // probabilidade acumulada
-  const lp = [0, 1, 2].map(i => ({type: 'scatter', mode: 'lines+markers', x: xl, y: R.pCota.slice(0, k + 1).map(p => p[i] * 100), name: `Régua atinge ${N[i + 1]} (${f(D.limites.AF[i], 1)} m)`, line: {color: HEX[i + 1], width: 2.5}, marker: {size: 6},
-    hovertemplate: `${N[i + 1]}: %{y:.0f}%<extra></extra>`}));
-  lp.push({type: 'scatter', mode: 'lines', x: xl, y: R.pRegra.slice(0, k + 1).map(p => p[0] * 100), name: 'Regra de chuva aciona Atenção', line: {color: HEX[1], width: 2, dash: 'dash'}, hovertemplate: 'Regra de chuva, Atenção: %{y:.0f}%<extra></extra>'});
-  plot('gP', lp, {...PL, margin: mg, xaxis: xa, yaxis: {...PL.yaxis, title: {text: 'Probabilidade acumulada (%)', font: {size: 11}}, range: [0, 100], ticksuffix: '%'}, showlegend: true, legend: leg}, CFG, 'Probabilidade acumulada por dia.');
-  // cota provável
-  const L = D.limites.AF, cq = R.cota.slice(0, k + 1), top = Math.max(12, ...cq.map(c => c[2] + 1));
-  plot('gH', [
-    {type: 'scatter', mode: 'lines', x: xl, y: cq.map(c => c[2]), line: {width: 0}, hoverinfo: 'skip', showlegend: false},
-    {type: 'scatter', mode: 'lines', x: xl, y: cq.map(c => c[0]), fill: 'tonexty', fillcolor: 'rgba(31,111,178,.18)', line: {width: 0}, name: 'Faixa provável (80% dos cenários, P10 a P90)', hovertemplate: 'P10 a P90: %{y:.2f} m<extra></extra>'},
-    {type: 'scatter', mode: 'lines', x: xl, y: cq.map(c => c[1]), name: 'Cenário central (P50)', line: {color: '#1f5fbf', width: 3, dash: 'dash'}, hovertemplate: 'P50: %{y:.2f} m<extra></extra>'},
-    ...L.map((v, i) => ({type: 'scatter', mode: 'lines', x: [xl[0], xl[xl.length - 1]], y: [v, v], name: `${N[i + 1]} (${f(v, 1)} m)`, line: {color: HEX[i + 1], width: 1.5, dash: 'dot'}, hoverinfo: 'skip'}))],
-    {...PL, margin: mg, xaxis: xa, yaxis: {...PL.yaxis, title: {text: 'Cota na régua de Alberto Flores (m)', font: {size: 11}}, range: [0, top], ticksuffix: ' m'}, showlegend: true, legend: leg, hovermode: 'x unified'}, CFG, 'Cota provável por dia.');
-  // chuva de 5 dias na bacia
-  const cc = R.chuva.slice(0, k + 1), topc = Math.max(PMIN * 1.3, ...cc.map(c => c[2] * 1.1));
-  plot('gC', [
-    {type: 'scatter', mode: 'lines', x: xl, y: cc.map(c => c[2]), line: {width: 0}, hoverinfo: 'skip', showlegend: false},
-    {type: 'scatter', mode: 'lines', x: xl, y: cc.map(c => c[0]), fill: 'tonexty', fillcolor: 'rgba(31,111,178,.18)', line: {width: 0}, name: 'Faixa provável (P10 a P90)', hovertemplate: 'P10 a P90: %{y:.0f} mm<extra></extra>'},
-    {type: 'scatter', mode: 'lines', x: xl, y: cc.map(c => c[1]), name: 'Cenário central (P50)', line: {color: '#1f5fbf', width: 3, dash: 'dash'}, hovertemplate: 'P50: %{y:.0f} mm<extra></extra>'},
-    {type: 'scatter', mode: 'lines', x: [xl[0], xl[xl.length - 1]], y: [PMIN, PMIN], name: `${PMIN} mm: abaixo disso não houve enchente registrada`, line: {color: '#8e1537', width: 1.5, dash: 'dot'}, hoverinfo: 'skip'}],
-    {...PL, margin: mg, xaxis: xa, yaxis: {...PL.yaxis, title: {text: 'Chuva média de 5 dias na bacia (mm)', font: {size: 11}}, range: [0, topc], ticksuffix: ' mm'}, showlegend: true, legend: leg, hovermode: 'x unified'}, CFG, 'Chuva de 5 dias prevista.');
 }
 
 function status() {
@@ -197,7 +190,7 @@ function status() {
 async function load(forcar) {
   if (busy) return; busy = true;
   try {
-    const BASE = await C.json('data.json'); D = AoVivo.reavaliar(BASE, BASE); status();
+    const BASE = await C.snapshot(); D = AoVivo.reavaliar(BASE, BASE); status();
     if (forcar) try { sessionStorage.clear(); } catch (e) { /* sem cache */ }
     try { E = await conjunto(D.zonas.Z1.fim_acumulado); falhaE = null; }
     catch (e) { falhaE = e.message; let u = null; try { u = JSON.parse(localStorage.getItem('ens:ultimo')); } catch (x) { /* sem cache */ }

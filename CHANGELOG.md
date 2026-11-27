@@ -1,3 +1,25 @@
+# Registro de alterações, revisão 27/11/2026 (auditoria de cálculo e segurança)
+
+Gatilhos e limites do estudo não foram alterados. 11 testes novos (39 no total), todos aprovados; 3 dos 4 testes da aba de probabilidade falham no código anterior, confirmando os erros.
+
+## Cálculo
+- **Desconto de solo úmido aplicado duas vezes (probabilidade.js)**: a regra de chuva da aba de probabilidade usava os limites já descontados do `data.json` e descontava de novo 30 mm (Z1 com solo úmido em 80 mm em vez de 110 mm). Passa a partir dos limites do quadro (`D.limites`), com um único desconto.
+- **Chuva acumulada desatualizada (motor.py e motor.js)**: a janela de 5 dias encerrada há mais de 3 h passa ao estado `desatualizada`. O valor ainda pode elevar o nível, mas não conta como zona completa; sem duas zonas completas, Normal não é afirmado (estado indeterminado). Aviso no painel de alertas e no selo da zona.
+- **0% artificial (probabilidade.js)**: quando a chuva prevista fica abaixo da menor chuva de enchente registrada (100 mm), o modelo não calcula probabilidade; a página mostra "Risco baixo*" com nota explicativa, nunca 0%.
+- **Horizonte de 10 dias (probabilidade.js)**: títulos dos cartões, cabeçalhos da tabela e resumo usam o número de dias efetivamente coberto pela previsão.
+- **Horas faltantes na previsão por conjunto (probabilidade.js)**: dia com menos de 90% das horas previstas não entra no cálculo (antes a soma parcial subestimava a chuva).
+- **Pluviômetros do navegador = pluviômetros do servidor (aovivo.js)**: o navegador usa a lista publicada pelo coletor; se o servidor usou pluviômetro que o navegador não lê (CEMADEN), a janela da zona não é substituída no navegador.
+- **Valores anômalos (coletor.py e aovivo.js)**: cota fora de 0 a 30 m e vazão fora de 0 a 6000 m³/s viram ausência e são registradas; antes um único valor impossível bloqueava a publicação inteira. Salto de 1 m ou mais na régua entre leituras consecutivas gera aviso para conferência local (o valor é mantido, pode ser cheia real).
+- Rebaixamento com série horária incompleta: já bloqueado (a descida de 12 h exige série contínua); coberto pelos casos existentes.
+
+## Segurança
+- Relatório dos 30 requisitos, roteiro de configuração da conta e procedimento de resposta a incidentes em `SEGURANCA.md`.
+- `testes/test_seguranca.py`: CSP, ausência de script embutido e de `eval`, SRI conferido contra o arquivo, varredura de credenciais, ações fixadas por SHA, permissões mínimas, critérios iguais nas 3 camadas.
+- Verificação do `data.json` no navegador (`C.snapshot()`): estrutura, versão, horário e critérios do estudo; snapshot recusado mostra erro, nunca nível.
+- `validar.py` bloqueia publicação com limites ou ajuste de solo úmido diferentes do estudo.
+- Proteção contra incorporação em outro site (clickjacking) e `upgrade-insecure-requests` na CSP.
+- `.github/dependabot.yml` para as ações do GitHub; `.gitignore` bloqueia `.env`, chaves e certificados.
+
 # Registro de alterações, revisão 26/11/2026
 
 Atende ao relatório de revisão do painel (itens P0 e P1) e aos pedidos de ajuste do simulador e do mapa. Gatilhos do estudo não foram alterados.

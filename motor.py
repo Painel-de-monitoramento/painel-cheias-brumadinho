@@ -89,7 +89,11 @@ def _chuva(inp, adj):
         Z = (inp.get('zonas') or {}).get(z) or {}; lim = [t - adj for t in L[z]]; zl[z] = lim
         cob = Z.get('cob5') or 0
         est = 'indisponivel' if Z.get('P5') is None or not cob > 0 else ('ok' if cob >= COB_OK else 'parcial')
-        zn[z] = {'nivel': None if est == 'indisponivel' else nivel(Z['P5'], lim), 'estado': est, 'P5': None if Z.get('P5') is None else _r1(Z['P5']), 'cob5': cob}
+        # janela de 5 dias encerrada há mais de 3 h: o valor ainda pode elevar o nível, mas não conta como zona completa
+        idf = _idade(Z.get('fim'), inp['agora']) if Z.get('fim') else None
+        if est == 'ok' and idf is not None and idf > IDADE_MAX_H: est = 'desatualizada'
+        zn[z] = {'nivel': None if est == 'indisponivel' else nivel(Z['P5'], lim), 'estado': est, 'P5': None if Z.get('P5') is None else _r1(Z['P5']), 'cob5': cob,
+                 'idade_fim_h': _r1(idf)}
     disp = [z for z in ZS if zn[z]['estado'] != 'indisponivel']
     ordz = sorted([zn[z]['nivel'] for z in disp], reverse=True)
     z_ok = sum(1 for z in ZS if zn[z]['estado'] == 'ok')

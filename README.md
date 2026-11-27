@@ -9,6 +9,7 @@ Painel público com o nível de controle da sede de Brumadinho, a chuva acumulad
 - `dados.py`: convenção única de intervalos (`[início, fim)`), conversão das fontes (ANA no fim do intervalo, Open-Meteo na hora anterior, met.no no início), cobertura medida, estimada, temporal e espacial, frescor por cadência.
 - `operacao.json`: resultado da última tentativa de coleta (ok, degradado ou falha), falhas consecutivas e última coleta válida. `versao.json` (gerado na montagem do site): execução, commit e identificador do snapshot publicado.
 - `RELATORIO_AUDITORIA.md`: rastreabilidade dos 22 apontamentos da auditoria de 26/11/2026.
+- `SEGURANCA.md`: relatório dos 30 requisitos de segurança, roteiro de configuração da conta GitHub e resposta a incidentes (revisão de 27/11/2026).
 - `motor.js` e `motor.py`: motor único de decisão (mesma lógica nas duas linguagens). Ausência é null, cobertura por janela, estado indeterminado, histerese de rebaixamento.
 - `coletor.py`: baixa a telemetria da ANA e a chuva estimada e prevista (Open-Meteo, met.no como reserva), chama o motor e grava `data.json` e `estado.json` de forma atômica.
 - `aovivo.js`: atualização no navegador com o mesmo motor; só pode elevar o nível publicado, nunca rebaixar.

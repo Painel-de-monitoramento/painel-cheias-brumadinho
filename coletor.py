@@ -76,6 +76,15 @@ def r1(v): return None if v is None else round(v, 1)
 
 # ---------- telemetria ANA (serviço legado; HidroWebService autenticado entra quando houver credenciais)
 FUTUROS = defaultdict(int)
+ANOMALOS = defaultdict(int)
+
+
+def plausivel(n, q, cod):
+    # leitura fisicamente impossível (sensor sem água, falha de transmissão, valor sentinela) vira ausência e é registrada;
+    # nunca é usada para acionar ou rebaixar nível. Faixas: cota 0 a 30 m (em cm), vazão 0 a 6000 m³/s.
+    if n is not None and not 0 < n < 3000: ANOMALOS[cod] += 1; n = None
+    if q is not None and not 0 <= q <= 6000: ANOMALOS[cod] += 1; q = None
+    return n, q
 
 
 def ana(cod, dias):
@@ -88,7 +97,8 @@ def ana(cod, dias):
         try: ts = dt.datetime.strptime(d['DataHora'].strip(), '%Y-%m-%d %H:%M:%S')
         except Exception: continue
         if futuro(ts, NOW): FUTUROS[cod] += 1; continue      # horário à frente do relógio: rejeitado e registrado
-        out.append((ts, num(d.get('Nivel')), num(d.get('Vazao')), num(d.get('Chuva'))))
+        n, q = plausivel(num(d.get('Nivel')), num(d.get('Vazao')), cod)
+        out.append((ts, n, q, num(d.get('Chuva'))))
     return sorted(set(out))
 
 
@@ -114,6 +124,7 @@ with ThreadPoolExecutor(max_workers=4) as ex:
         m = {r[0]: r for r in old}; m.update({r[0]: r for r in new})
         tel[cod] = sorted(r for t, r in m.items() if t >= NOW - dt.timedelta(days=37))
 for cod, n in FUTUROS.items(): log('registros com horário no futuro rejeitados', cod, n)
+for cod, n in ANOMALOS.items(): log('valores fisicamente impossíveis descartados', cod, n)
 escrever(TCACHE, {c: [[r[0].isoformat(), *r[1:]] for r in rows] for c, rows in tel.items()})
 
 H0 = H_ATUAL - dt.timedelta(days=35)
@@ -254,7 +265,7 @@ for z in ZONAS:
                 'cob5_medida': cob5['medida'], 'cob5_estimada': cob5['estimada'], 'cob5_espacial': cob5['espacial'], 'fontes5': f5,
                 'P5_modelo': r1(p5m), 'prev72': r1(p72) if c72 >= 0.9 else None, 'prev72_cob': round(c72, 2),
                 'diario': dias, 'previsao': prev}
-    Zin[z] = {'P5': w[120][0], 'cob5': w[120][1], 'P30': w[720][0], 'cob30': w[720][1]}
+    Zin[z] = {'P5': w[120][0], 'cob5': w[120][1], 'P30': w[720][0], 'cob30': w[720][1], 'fim': iso(FIM_OBS)}
 
 
 # ---------- vazão e nível (cada variável com seu próprio horário)
@@ -337,13 +348,20 @@ for i in dec['indicadores'][:2]:
     if i['estado'] != 'ok': alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"{i['nome']} sem leitura válida: {i['motivo']}" + (f" (última há {i['idade_h']:.0f} h)" if i['idade_h'] is not None and i['idade_h'] > 0 else '')})
 for z in ZONAS:
     e = dec['zonas'][z]; Z = zonas[z]
-    if e['estado'] != 'ok': alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Chuva de 5 dias em {z} com cobertura de {e['cob5'] * 100:.0f}%" + (' (valor parcial)' if e['estado'] == 'parcial' else ' (sem dado)')})
+    if e['estado'] == 'desatualizada': alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Chuva de 5 dias em {z} encerrada há {e['idade_fim_h']:.0f} h: valor desatualizado, não confirma normalidade"})
+    elif e['estado'] != 'ok': alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Chuva de 5 dias em {z} com cobertura de {e['cob5'] * 100:.0f}%" + (' (valor parcial)' if e['estado'] == 'parcial' else ' (sem dado)')})
     elif Z['cob5_medida'] < 0.5: alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Chuva de 5 dias em {z}: {Z['cob5_medida'] * 100:.0f}% das horas medidas por pluviômetro e {Z['cob5_estimada'] * 100:.0f}% estimadas por modelo"})
 if dec['solo']['estado'] == 'indeterminado': alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Umidade do solo indeterminada: {dec['solo']['criterio']}"})
 if dec['motivo_manutencao']: alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Nível mantido em {NIVEIS[dec['nivel']]}: {dec['motivo_manutencao']}"})
 if not prev_ok: alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': 'Previsão de chuva indisponível nesta atualização'})
 if CEM_SIT['configurado'] and not CEM_SIT['ok']:
     alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': 'Pluviômetros do CEMADEN indisponíveis nesta atualização' + (f" (último sucesso {CEM_SIT['ultimo_sucesso'].replace('T', ' ')})" if CEM_SIT.get('ultimo_sucesso') else '')})
+for cod in ('40740000', '40710001'):
+    if ANOMALOS.get(cod): alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"{ANOMALOS[cod]} leitura(s) fisicamente impossíveis da estação {cod} foram descartadas"})
+# salto brusco da régua entre leituras consecutivas (até 1 h): mantido (pode ser cheia real), mas sinalizado para conferência
+_af = [r for r in tel.get('40740000', []) if r[1] is not None][-2:]
+if len(_af) == 2 and (_af[1][0] - _af[0][0]).total_seconds() <= 3600 and abs(_af[1][1] - _af[0][1]) >= 100:
+    alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Régua de Alberto Flores variou {(_af[1][1] - _af[0][1]) / 100:+.2f} m entre as duas últimas leituras: conferir a régua no local antes de agir"})
 for cod in ('40740000', '40710001'):
     if FUTUROS.get(cod): alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"{FUTUROS[cod]} registro(s) da estação {cod} com horário no futuro foram descartados (possível erro de relógio)"})
 

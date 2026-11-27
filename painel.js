@@ -10,7 +10,7 @@ const {HEX, TXT, CINZA, esc, f, dtf, hm, ddm, idade, idh, selo, PL, CFG, plot} =
 const SIT = ['Sem risco de inundação', 'Água na planície e nas áreas baixas da beira-rio', 'Edificações da beira-rio atingidas', 'Centro alagado (referência 2012)', 'Nível de 2022 ou superior'];
 const FONTE = {medicao: 'medição', modelo: 'modelo', misto: 'misto', 'sem dado': 'sem dado'};
 const $ = id => document.getElementById(id);
-const chip = (n, N, e) => n == null ? `<span class="chip nd">Sem dado</span>` : `<span class="chip" style="background:${HEX[n]};color:${TXT[n]}">${esc(N[n])}${e === 'parcial' ? ' · parcial' : ''}</span>`;
+const chip = (n, N, e) => n == null ? `<span class="chip nd">Sem dado</span>` : `<span class="chip" style="background:${HEX[n]};color:${TXT[n]}">${esc(N[n])}${e === 'parcial' ? ' · parcial' : e === 'desatualizada' ? ' · desatualizada' : ''}</span>`;
 let ZOOM = 720, FIT = false, D = null, BASE = null, OP = null, PUB = null, RG = null, busy = false, ultimaFalha = null, ultimaOk = null;
 
 function gaps(serie, maxh) { const o = []; for (let i = 0; i < serie.length; i++) { if (i && (new Date(serie[i][0]) - new Date(serie[i - 1][0])) / 36e5 > maxh) o.push([serie[i - 1][0], null]); o.push(serie[i]); } return o; }
@@ -189,7 +189,7 @@ function reguas(d) {
 async function load() {
   if (busy) return; busy = true;
   try {
-    const [b, op] = await Promise.all([C.json('data.json'), C.json('operacao.json', 8000).catch(() => null)]);
+    const [b, op] = await Promise.all([C.snapshot(), C.json('operacao.json', 8000).catch(() => null)]);
     BASE = b; OP = op; ultimaFalha = null; ultimaOk = Date.now();
     if (!D || (D.coleta || '') <= (BASE.coleta || '')) { D = AoVivo.reavaliar(BASE, BASE); render(D); }
   } catch (e) {

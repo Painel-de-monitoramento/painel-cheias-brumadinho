@@ -1,0 +1,11 @@
+# Monitoramento de vulnerabilidades e atualizações das ações do GitHub usadas nos workflows (gratuito).
+# As ações estão fixadas por SHA; o Dependabot abre pull request com o novo SHA quando sai versão nova ou correção.
+# A biblioteca Plotly fica em vendor/ (sem gerenciador de pacotes): a verificação dela é manual, ver SEGURANCA.md.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: [seguranca]

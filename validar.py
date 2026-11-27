@@ -6,6 +6,10 @@ import json, math, sys, datetime as dt
 
 TZ = dt.timezone(dt.timedelta(hours=-3))
 TOL_FUTURO = dt.timedelta(minutes=5)
+# Critérios do RT-BRU-HID-001 Rev04. Uma revisão do estudo exige alterar, no mesmo pull request, este arquivo,
+# coletor.py (LIM e AJUSTE_UMIDO) e comum.js (CRITERIOS); qualquer divergência impede a publicação.
+CRITERIOS = {'limites': {'Z1': [140, 185, 235, 260], 'Z2': [155, 210, 260, 290], 'Z3': [170, 230, 285, 320],
+                         'BV': [300, 600, 950, 1150], 'AF': [5.0, 7.0, 9.0, 10.5]}, 'ajuste_umido': 30}
 
 
 def _const(c): raise ValueError(f'constante não permitida no JSON: {c}')
@@ -52,6 +56,10 @@ def validar(d, agora=None):
         L = d['limites'].get(k)
         if not (isinstance(L, list) and len(L) == 4 and all(numero(x) for x in L)): erros.append(f'limites.{k} inválido'); continue
         if any(b <= a for a, b in zip(L, L[1:])): erros.append(f'limites.{k} não crescente')
+
+    for k, v in CRITERIOS['limites'].items():
+        if [float(x) for x in (d['limites'].get(k) or []) if numero(x)] != [float(x) for x in v]: erros.append(f'limites.{k} diferente do estudo')
+    if d.get('ajuste_umido') != CRITERIOS['ajuste_umido']: erros.append('ajuste_umido diferente do estudo')
 
     nv = d['nivel']
     st = req(nv, 'status', str, 'nivel'); at = req(nv, 'atual', 'int', 'nivel', nulo=True)
