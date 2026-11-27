@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['index.html', 'simulador.html', 'estacoes.html', 'estilo.css', '*.js', 'vendor/**', 'motor.py', 'dados.py', 'historico.json', 'reguas.json', 'coletor.py', 'validar.py', 'testes/**', '.github/workflows/atualizar.yml']
+    paths: ['index.html', 'probabilidade.html', 'simulador.html', 'estacoes.html', 'estilo.css', '*.js', 'vendor/**', 'motor.py', 'dados.py', 'historico.json', 'reguas.json', 'coletor.py', 'validar.py', 'testes/**', '.github/workflows/atualizar.yml']
 
 # Sem permissões por padrão; cada job recebe só o necessário.
 permissions: {}
@@ -94,7 +94,7 @@ jobs:
         run: |
           python validar.py data.json
           mkdir -p _site/vendor
-          cp index.html simulador.html estacoes.html estilo.css motor.js aovivo.js painel.js simulador.js estacoes.js comum.js data.json operacao.json historico.json reguas.json _site/
+          cp index.html probabilidade.html simulador.html estacoes.html estilo.css motor.js aovivo.js painel.js probabilidade.js simulador.js estacoes.js comum.js data.json operacao.json historico.json reguas.json _site/
           cp vendor/* _site/vendor/
           python - <<'EOF'
           import json, os, datetime as dt
