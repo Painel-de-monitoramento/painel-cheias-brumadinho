@@ -21,4 +21,4 @@ jobs:
         env:
           CEMADEN_USUARIO: ${{ secrets.CEMADEN_USUARIO }}
           CEMADEN_SENHA: ${{ secrets.CEMADEN_SENHA }}
-        run: python sonda_cemaden.py; python cemaden.py --diagnostico
+        run: python cemaden.py --diagnostico
