@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 *.tmp
 _site/
+.env
+.env.*
+*.pem
+*.key
+*.p12
