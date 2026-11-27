@@ -51,11 +51,14 @@ window.AoVivo = (() => {
       const t = await buscar(u, 'text');
       const x = new DOMParser().parseFromString(t, 'text/xml'), rows = x.getElementsByTagName('DadosHidrometereologicos');
       const g = (e, k) => num(e.getElementsByTagName(k)[0]?.textContent);
-      const m = cache[cod] || (cache[cod] = new Map()); let fut = 0;
+      const m = cache[cod] || (cache[cod] = new Map()); let fut = 0, anom = 0;
       for (const e of rows) { const sd = e.getElementsByTagName('DataHora')[0]?.textContent; if (!sd) continue; const t0 = ms(sd); if (!Number.isFinite(t0)) continue;
-        if (t0 > now + TOL_FUT) { fut++; continue; } m.set(t0, [g(e,'Nivel'), g(e,'Vazao'), g(e,'Chuva')]); }
+        if (t0 > now + TOL_FUT) { fut++; continue; }
+        // mesmas faixas físicas do coletor: valor impossível vira ausência, nunca aciona nem rebaixa
+        let nv = g(e,'Nivel'), qv = g(e,'Vazao'); if (nv != null && !(nv > 0 && nv < 3000)) { nv = null; anom++; } if (qv != null && !(qv >= 0 && qv <= 6000)) { qv = null; anom++; }
+        m.set(t0, [nv, qv, g(e,'Chuva')]); }
       for (const k of [...m.keys()]) if (k < now - 8 * 86400e3 || k > Date.now() + TOL_FUT) m.delete(k);
-      registrar(f, true); fontes[f].futuros = fut;
+      registrar(f, true); fontes[f].futuros = fut; fontes[f].anomalos = anom;
     } catch (e) { registrar(f, false, e); }
   }
   async function modelo() {
@@ -106,7 +109,7 @@ window.AoVivo = (() => {
     const entrada = {agora: loc(now), limites: L, ajuste_umido: d.ajuste_umido, areas: d.areas,
       af: {h: d.af.h, t: d.af.h_t || d.af.t, q_ontem: d._q_ontem ?? d.solo.af_q_ontem, q_ontem_cobertura: d._q_ontem_cob ?? d.solo.af_q_ontem_cobertura ?? null},
       bv: {q: d.bv.q, t: d.bv.q_t || d.bv.t},
-      zonas: Object.fromEntries(ZS.map(z => [z, {P5: d.zonas[z].P5, cob5: d.zonas[z].cob5 ?? 0, P30: d.zonas[z].P30 ?? null, cob30: d.zonas[z].cob30 ?? 0}])),
+      zonas: Object.fromEntries(ZS.map(z => [z, {P5: d.zonas[z].P5, cob5: d.zonas[z].cob5 ?? 0, P30: d.zonas[z].P30 ?? null, cob30: d.zonas[z].cob30 ?? 0, fim: d.zonas[z].fim_acumulado ?? null}])),
       serie_af: (d.af.serie || []).filter(p => p[0] >= loc(fl(now) - 30 * H))};
     let dec = Motor.decidir({...entrada, estado_anterior: usaLocal ? lo : srv, somente_subir: !usaLocal});
     if (usaLocal && srv && srv.nivel != null && dec.nivel != null && dec.nivel <= srv.nivel) {
@@ -138,7 +141,8 @@ window.AoVivo = (() => {
     const nu = dec.nivel_bruto_solo_umido; if (nu != null && (dec.nivel_bruto == null || nu > dec.nivel_bruto)) al.push({tipo: 'cenario', nivel: nu, texto: `Umidade do solo indeterminada: se o solo estiver úmido, a regra de chuva indica ${N[nu]}`});
     for (const i of dec.indicadores.slice(0, 2)) if (i.estado !== 'ok') al.push({tipo: 'dado', nivel: 0, texto: `${i.nome} sem leitura válida: ${i.motivo}${i.idade_h != null && i.idade_h > 0 ? ` (última há ${Math.round(i.idade_h)} h)` : ''}`});
     for (const z of ZS) { const e = dec.zonas[z], Z = d.zonas[z];
-      if (e.estado !== 'ok') al.push({tipo: 'dado', nivel: 0, texto: `Chuva de 5 dias em ${z} com cobertura de ${Math.round(e.cob5 * 100)}%${e.estado === 'parcial' ? ' (valor parcial)' : ' (sem dado)'}`});
+      if (e.estado === 'desatualizada') al.push({tipo: 'dado', nivel: 0, texto: `Chuva de 5 dias em ${z} encerrada há ${Math.round(e.idade_fim_h)} h: valor desatualizado, não confirma normalidade`});
+      else if (e.estado !== 'ok') al.push({tipo: 'dado', nivel: 0, texto: `Chuva de 5 dias em ${z} com cobertura de ${Math.round(e.cob5 * 100)}%${e.estado === 'parcial' ? ' (valor parcial)' : ' (sem dado)'}`});
       else if (Z.cob5_medida != null && Z.cob5_medida < 0.5) al.push({tipo: 'dado', nivel: 0, texto: `Chuva de 5 dias em ${z}: ${Math.round(Z.cob5_medida * 100)}% das horas medidas por pluviômetro e ${Math.round((Z.cob5_estimada ?? 0) * 100)}% estimadas por modelo`}); }
     if (dec.solo.estado === 'indeterminado') al.push({tipo: 'dado', nivel: 0, texto: `Umidade do solo indeterminada: ${dec.solo.criterio}`});
     if (dec.motivo_manutencao && dec.motivo_manutencao !== 'rebaixamento reservado ao coletor') al.push({tipo: 'dado', nivel: 0, texto: `Nível mantido em ${N[dec.nivel]}: ${dec.motivo_manutencao}`});
@@ -163,9 +167,13 @@ window.AoVivo = (() => {
     const M = om && Date.now() - omAt < 3 * H ? om : null, h1 = fl(now), h0 = h1 - 6 * 86400e3;   // h1: início da hora em curso
     if (M) d.previsao_meta = {...(d.previsao_meta || {}), fonte: 'Open-Meteo', obtida: loc(omAt), ultimo_sucesso: loc(omAt)};
     const ch = {}; for (const [c] of EST) { const r = chuvaHoraria(c); if (r) ch[c] = r; }
-    const zs = {}, src = {}, peso = {}, usados = {}, parcial = {};
+    const zs = {}, src = {}, peso = {}, usados = {}, parcial = {}, semPar = {};
     for (const z of ZS) {
-      const cods = EST.filter(e => e[1] === z && ch[e[0]] && Object.keys(ch[e[0]].s).length > 48).map(e => e[0]); usados[z] = cods; const s = {}, sr = {}, pw = {};
+      // mesmos pluviômetros do servidor (coletor): o navegador não escolhe estações por critério próprio
+      const srvP = d.zonas[z].pluviometros || [], anaZ = EST.filter(e => e[1] === z).map(e => e[0]);
+      semPar[z] = srvP.some(c => !anaZ.includes(c));   // servidor usou pluviômetro que o navegador não lê (CEMADEN)
+      const cods = Array.isArray(d.zonas[z].pluviometros) ? srvP.filter(c => anaZ.includes(c) && ch[c]) : anaZ.filter(c => ch[c] && Object.keys(ch[c].s).length > 48);
+      usados[z] = cods; const s = {}, sr = {}, pw = {};
       for (let t = h0; t < h1; t += H) { const v = cods.map(c => ch[c].s[t]).filter(x => x != null);
         if (v.length) { s[t] = v.reduce((a,b)=>a+b,0) / v.length; sr[t] = 'M'; pw[t] = v.length / cods.length; } else if (M && M[z][t] != null) { s[t] = M[z][t]; sr[t] = 'E'; } }
       const pp = cods.map(c => ch[c].acc[h1]).filter(x => x != null);
@@ -199,7 +207,8 @@ window.AoVivo = (() => {
       Z.hora_parcial = parcial[z];
       // só substitui o valor do servidor se a janela ao vivo for ao menos tão medida e tão completa quanto ele
       // (sem a ANA, uma estimativa só de modelo nunca substitui uma chuva medida)
-      if (Z.P5 == null || (c5.medida >= (Z.cob5_medida ?? 0) - 0.02 && w5.cob >= (Z.cob5 ?? 0))) {
+      // e nunca quando o servidor usou pluviômetros que o navegador não consegue ler (a janela não seria a mesma)
+      if (!semPar[z] && (Z.P5 == null || (c5.medida >= (Z.cob5_medida ?? 0) - 0.02 && w5.cob >= (Z.cob5 ?? 0)))) {
         let f5 = ''; for (let t = h1 - 120 * H; t < h1; t += H) f5 += src[z][t] || '-';
         Object.assign(Z, {P24: r1(w24.v), P72: r1(w72.v), P5: r1(w5.v), cob24: +w24.cob.toFixed(2), cob72: +w72.cob.toFixed(2), cob5: +w5.cob.toFixed(2),
           cob5_medida: c5.medida, cob5_estimada: c5.estimada, cob5_espacial: c5.espacial, fontes5: f5, fim_acumulado: loc(h1),
