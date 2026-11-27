@@ -45,6 +45,8 @@ jobs:
         env:
           ANA_HIDRO_USUARIO: ${{ secrets.ANA_HIDRO_USUARIO }}
           ANA_HIDRO_SENHA: ${{ secrets.ANA_HIDRO_SENHA }}
+          CEMADEN_USUARIO: ${{ secrets.CEMADEN_USUARIO }}
+          CEMADEN_SENHA: ${{ secrets.CEMADEN_SENHA }}
         run: |
           cp data.json /tmp/data_anterior.json
           codigo=1
@@ -111,7 +113,7 @@ jobs:
           git config user.name "painel-cheias"
           git config user.email "painel-cheias@users.noreply.github.com"
           if [ "${{ steps.res.outputs.resultado }}" = "falha" ]; then git checkout -- data.json; git add operacao.json
-          else git add data.json tel_cache.json modelo_hist.json estado.json operacao.json; fi
+          else git add data.json tel_cache.json modelo_hist.json estado.json operacao.json; [ -f cemaden_cache.json ] && git add cemaden_cache.json; fi
           git diff --cached --quiet && exit 0
           git commit -m "Dados $(TZ=America/Sao_Paulo date '+%d/%m %H:%M') (${{ steps.res.outputs.resultado }})"
           for i in 1 2 3; do
