@@ -129,5 +129,9 @@ class NavegadorAoVivo(unittest.TestCase):
         r = subprocess.run(['node', os.path.join(AQUI, 'test_aovivo.js')], capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
+    def test_probabilidade(self):
+        r = subprocess.run(['node', os.path.join(AQUI, 'test_probabilidade.js')], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
 
 if __name__ == '__main__': unittest.main()
