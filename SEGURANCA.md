@@ -48,8 +48,8 @@ Legenda: **Implementado** (no código, com teste) · **Manual** (configuração 
 3. **Varredura do GitHub**: Settings > Code security > ative *Dependabot alerts*, *Dependabot security updates*, *Secret scanning* e *Push protection*.
 4. **HTTPS obrigatório**: Settings > Pages > marque *Enforce HTTPS*.
 5. **Notificações**: github.com > Settings > Notifications > marque e-mail em *Actions* (somente falhas) e em *Security alerts*. No repositório, *Watch* > *Custom* > *Security alerts*.
-6. **Backup mensal**: em um computador com Git, `git clone --mirror https://github.com/yurismvieira-dot/painel-cheias-brumadinho.git` e guarde a pasta em local fora do GitHub (OneDrive ou disco externo).
-7. **Monitor externo** (gratuito): em uptimerobot.com, crie um monitor *Keyword* para `https://yurismvieira-dot.github.io/painel-cheias-brumadinho/operacao.json` com intervalo de 5 minutos e alerta por e-mail quando a palavra `"resultado": "ok"` não aparecer por mais de 1 hora.
+6. **Backup mensal**: em um computador com Git, `git clone --mirror https://github.com/Painel-de-monitoramento/painel-cheias-brumadinho.git` e guarde a pasta em local fora do GitHub (OneDrive ou disco externo).
+7. **Monitor externo** (gratuito): em uptimerobot.com, crie um monitor *Keyword* para `https://painel-de-monitoramento.github.io/painel-cheias-brumadinho/operacao.json` com intervalo de 5 minutos e alerta por e-mail quando a palavra `"resultado": "ok"` não aparecer por mais de 1 hora.
 8. **Acessos**: Settings > Collaborators (deve estar vazio ou só com pessoas conhecidas) e Settings > Deploy keys (vazio). Em github.com > Settings > Applications, revogue aplicativos que não reconhecer.
 
 ## Resposta a incidentes
