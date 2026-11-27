@@ -3,44 +3,51 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://telemetriaws1.ana.gov.br https://api.open-meteo.com https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>Simulador de cheias Brumadinho</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilo.css">
-<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-<script src="motor.js"></script>
-<script src="aovivo.js"></script>
+<script src="vendor/plotly-2.35.2.min.js" integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" defer></script>
+<script src="motor.js" defer></script>
+<script src="comum.js" defer></script>
+<script src="aovivo.js" defer></script>
+<script src="simulador.js" defer></script>
 </head>
 <body>
 <header class="top"><div class="wrap hdr">
  <h1>Monitoramento de cheias do Rio Paraopeba em Brumadinho/MG</h1>
- <nav class="tabs"><a href="index.html">Painel em tempo real</a><a class="on" href="simulador.html">Simulador e tendências</a></nav>
- <div class="upd"><span id="upd">Carregando dados</span></div>
+ <nav class="tabs"><a href="index.html">Painel em tempo real</a><a class="on" href="simulador.html">Simulador e tendências</a><a href="estacoes.html">Estações e leituras</a></nav>
+ <div class="upd"><span class="dot" id="dot"></span><span id="upd">Carregando dados</span><button id="btnRec" type="button">Recarregar condições atuais</button></div>
 </div></header>
 <main class="wrap">
 <div id="warn" class="warn" hidden></div>
 
 <section>
  <h2>Simulação de cheia<span class="scen" id="scen" hidden></span></h2>
- <p class="note">Informe a chuva que pode ocorrer nos próximos dias em cada zona e a vazão atual do rio. O simulador estima o pico em Alberto Flores pela relação chuva-vazão do estudo (ln Q = 3,14 + 0,0090 × P5 + 0,39 × ln Qbase), converte a vazão em cota pela curva da régua, estima a vazão de pico em Belo Vale pela relação entre os picos das duas estações nas enchentes registradas (ln Q<sub>BV</sub> = 0,944 + 0,849 × ln Q<sub>AF</sub>) e aplica a regra de decisão dos níveis de controle.</p>
+ <p class="note">Informe a chuva que pode ocorrer nos próximos dias em cada zona e a vazão atual do rio. O simulador estima o pico em Alberto Flores pela relação chuva-vazão do estudo (ln Q = 3,14 + 0,0090 × P5 + 0,39 × ln Qbase), converte a vazão em cota pela curva da régua, estima a vazão de pico em Belo Vale pela relação entre os picos das duas estações nas enchentes registradas (ln Q<sub>BV</sub> = 0,944 + 0,849 × ln Q<sub>AF</sub>) e aplica a regra de decisão dos níveis de controle. A condição do solo segue a mesma regra do painel (vazão média de ontem em Alberto Flores acima de 90 m³/s ou chuva de 30 dias na bacia acima de 370 mm).</p>
  <div class="presets" id="presets">
   <button type="button" data-p="atual">Situação atual com previsão</button>
   <button type="button" data-p="zero">Somente chuva já observada</button>
  </div>
+ <p class="note" id="modo"></p>
  <div class="sim">
-  <div class="panel ctl">
-   <label>Chuva adicional em Z1 (Alto Paraopeba / Maranhão)<output id="oZ1"></output><input type="range" id="aZ1" min="0" max="350" step="5"><span id="sZ1"></span></label>
-   <label>Chuva adicional em Z2 (Camapuã / Brumado)<output id="oZ2"></output><input type="range" id="aZ2" min="0" max="350" step="5"><span id="sZ2"></span></label>
-   <label>Chuva adicional em Z3 (Médio Paraopeba)<output id="oZ3"></output><input type="range" id="aZ3" min="0" max="350" step="5"><span id="sZ3"></span></label>
-   <label>Vazão de base em Alberto Flores<output id="oQb"></output><input type="range" id="qb" min="10" max="400" step="5"><span>Vazão do rio antes da chuva, indicadora da umidade do solo. Acima de 90 m³/s o solo é considerado úmido.</span></label>
-   <label style="grid-template-columns:auto minmax(0,1fr)"><input type="checkbox" id="obs" checked style="width:22px;height:22px"><b style="font-weight:500">Somar a chuva já observada nos últimos 5 dias</b></label>
+  <div class="panel ctl" id="ctl">
+   <div class="campo" data-z="Z1"><label for="aZ1">Chuva adicional em Z1 (Alto Paraopeba / Maranhão)</label><div class="par"><input type="range" id="rZ1" min="0" max="350" step="1" aria-label="Chuva adicional em Z1"><input type="number" id="aZ1" min="0" step="1" inputmode="decimal"><span>mm</span></div><span class="ajuda" id="sZ1"></span><div class="manual" id="mZ1" hidden><label for="oZ1m">Chuva observada em Z1 indisponível: informe os 5 dias observados (mm)</label><input type="number" id="oZ1m" min="0" step="0.1" inputmode="decimal"></div></div>
+   <div class="campo" data-z="Z2"><label for="aZ2">Chuva adicional em Z2 (Camapuã / Brumado)</label><div class="par"><input type="range" id="rZ2" min="0" max="350" step="1" aria-label="Chuva adicional em Z2"><input type="number" id="aZ2" min="0" step="1" inputmode="decimal"><span>mm</span></div><span class="ajuda" id="sZ2"></span><div class="manual" id="mZ2" hidden><label for="oZ2m">Chuva observada em Z2 indisponível: informe os 5 dias observados (mm)</label><input type="number" id="oZ2m" min="0" step="0.1" inputmode="decimal"></div></div>
+   <div class="campo" data-z="Z3"><label for="aZ3">Chuva adicional em Z3 (Médio Paraopeba)</label><div class="par"><input type="range" id="rZ3" min="0" max="350" step="1" aria-label="Chuva adicional em Z3"><input type="number" id="aZ3" min="0" step="1" inputmode="decimal"><span>mm</span></div><span class="ajuda" id="sZ3"></span><div class="manual" id="mZ3" hidden><label for="oZ3m">Chuva observada em Z3 indisponível: informe os 5 dias observados (mm)</label><input type="number" id="oZ3m" min="0" step="0.1" inputmode="decimal"></div></div>
+   <div class="campo"><label for="qb">Vazão de base em Alberto Flores</label><div class="par"><input type="range" id="rqb" min="10" max="400" step="1" aria-label="Vazão de base"><input type="number" id="qb" min="1" step="1" inputmode="decimal"><span>m³/s</span></div><span class="ajuda">Vazão do rio antes da chuva, usada na relação chuva-vazão.</span></div>
+   <div class="campo"><label for="qo">Vazão média de ontem em Alberto Flores (umidade do solo)</label><div class="par"><input type="number" id="qo" min="0" step="0.1" inputmode="decimal"><span>m³/s</span></div><span class="ajuda" id="sqo"></span></div>
+   <div class="campo"><label for="p30">Chuva de 30 dias na bacia (umidade do solo)</label><div class="par"><input type="number" id="p30" min="0" step="0.1" inputmode="decimal"><span>mm</span></div><span class="ajuda" id="solo"></span></div>
+   <label class="chk"><input type="checkbox" id="obs" checked><span>Somar a chuva já observada nos últimos 5 dias</span></label>
   </div>
   <div>
    <div class="res" id="res"><div style="font-size:14px">Nível simulado para a sede</div><div class="big" id="rN">...</div><div id="rT" style="font-size:15px;margin-top:4px"></div>
     <div class="rgrid" id="rG"></div></div>
    <div class="simvis">
     <div class="panel"><h3>Régua de Alberto Flores simulada</h3><div id="rSvg"></div></div>
-    <div class="panel"><h3>Vazão de pico simulada em Belo Vale</h3><div id="bvSim"></div></div>
+    <div class="panel"><h3>Vazão de pico simulada em Belo Vale</h3><div id="bvSim" class="fig"></div></div>
    </div>
    <p class="note" id="rNote" style="margin-top:8px"></p>
   </div>
@@ -51,21 +58,21 @@
 
 <section>
  <h2>Repetir uma enchente histórica</h2>
- <p class="note">Carrega no simulador a chuva de 5 dias por zona e a vazão de base que antecederam cada enchente, sem somar a chuva atual. Serve para verificar se o modelo reproduz o evento e como a régua responderia.</p>
+ <p class="note">Carrega no simulador os valores exatos de chuva de 5 dias por zona e de vazão de base que antecederam cada enchente, sem somar a chuva atual. A vazão de base do evento é usada também como vazão de ontem para a umidade do solo, pois a série diária anterior ao evento não está no histórico do painel.</p>
  <div class="presets" id="presetsH"></div>
 </section>
 
 <section>
  <h2>Tendência da régua de Alberto Flores</h2>
- <p class="note">Últimos 10 dias de cota e projeção pela taxa de variação das últimas 6 horas, com o tempo estimado para atingir cada nível nessa taxa.</p>
- <div class="rgrid" id="tG" style="grid-template-columns:repeat(4,minmax(0,1fr))"></div>
+ <p class="note">Últimos 10 dias de cota e projeção linear pela taxa de variação das últimas 6 horas, com o tempo estimado para atingir cada nível se essa taxa se mantiver. A projeção não é previsão: a taxa muda com a chuva e com a chegada da onda de montante.</p>
+ <div class="rgrid r4" id="tG"></div>
  <div class="fig tall" id="gTr"></div>
 </section>
 
 <section>
  <h2>Trajetória atual comparada à subida das enchentes</h2>
  <p class="note">Curvas da régua nos 10 dias anteriores e 4 dias posteriores ao pico de cada enchente. A linha preta é a régua atual. Use o controle para supor quantos dias faltam para um eventual pico e comparar a subida atual com a das cheias passadas.</p>
- <div class="ctl panel" style="margin-top:10px"><label>Supor que o pico ocorreria daqui a<output id="oSh"></output><input type="range" id="sh" min="0" max="8" step="1" value="3"></label></div>
+ <div class="ctl panel" style="margin-top:10px"><div class="campo"><label for="sh">Supor que o pico ocorreria daqui a <output id="oSh"></output></label><input type="range" id="sh" min="0" max="8" step="1" value="3"></div></div>
  <div class="fig tall" id="gEv"></div>
 </section>
 
@@ -75,107 +82,6 @@
  <div class="fig tall" id="gCh"></div>
 </section>
 </main>
-<footer class="wrap foot">Painel elaborado por Yuri Silva Mendes Vieira</footer>
-
-<script>
-{
-const HEX=['#2e9e5b','#f2c230','#f08a24','#d93a26','#8e1537'];
-const TXT=['#ffffff','#111111','#111111','#ffffff','#ffffff'];
-const N=['Normal','Atenção','Alerta','Alerta máximo','Emergência'];
-const SIT=['Sem risco de inundação','Água na planície e nas áreas baixas da beira-rio','Edificações da beira-rio atingidas','Centro alagado (referência 2012)','Nível de 2022 ou superior'];
-const EVC=['#7b8a94','#5f7d95','#8f6b9a','#9a8a5a','#8e1537','#d93a26','#f08a24','#4d9a8a','#1f6fb2'];
-const f=(v,d=0)=>v==null||isNaN(v)?'sem dado':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
-const PL={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'IBM Plex Sans',color:'#333',size:12},margin:{l:52,r:12,t:10,b:40},
- xaxis:{gridcolor:'#eceff1',linecolor:'#c9d2d8'},yaxis:{gridcolor:'#eceff1',linecolor:'#c9d2d8'},hoverlabel:{bgcolor:'#fff',bordercolor:'#c9d2d8',font:{color:'#111'}}};
-const CFG={displaylogo:false,responsive:true,modeBarButtonsToRemove:['lasso2d','select2d','autoScale2d']};
-const $=id=>document.getElementById(id);
-let D,H;
-const setScen=t=>{const e=$('scen');e.hidden=!t;e.textContent=t?`Cenário carregado: enchente de ${t}`:'';};
-const nivel=(v,l)=>l.reduce((k,t,i)=>v!=null&&v>=t?i+1:k,0);
-function interp(x,X,Y,logx){const g=v=>logx?Math.log(v):v;if(x<=X[0])return Y[0];for(let i=1;i<X.length;i++)if(x<=X[i]){const t=(g(x)-g(X[i-1]))/(g(X[i])-g(X[i-1]));return Y[i-1]+t*(Y[i]-Y[i-1]);}const n=X.length-1;return Y[n]+(g(x)-g(X[n]))*(Y[n]-Y[n-1])/(g(X[n])-g(X[n-1]));}
-const cota=Q=>interp(Q,H.curva.Q,H.curva.h,true);
-function trEq(Q){const T=H.tr;if(Q<T.Q[0])return '< 2 anos';const lt=interp(Q,T.Q,T.TR.map(Math.log),true);return `${f(Math.exp(lt),0)} anos`;}
-function lines(lims,u,dx){return {shapes:lims.map((v,i)=>({type:'line',xref:'paper',x0:0,x1:1,y0:v,y1:v,line:{color:HEX[i+1],width:1.5,dash:'dot'}})),annotations:lims.map((v,i)=>({xref:'paper',x:1,y:v,xanchor:'right',yanchor:'bottom',text:`${N[i+1]} ${f(v,1)} ${u}`,showarrow:false,font:{size:11,color:HEX[i+1]}}))};}
-function sim(){
- const Z=D.zonas,M=H.modelo,obs=$('obs').checked,qb=+$('qb').value,umido=qb>90,adj=umido?30:0;
- const P={};let num=0,den=0;
- for(const z of ['Z1','Z2','Z3']){const a=+$('a'+z).value;P[z]=(obs?(Z[z].P5||0):0)+a;$('o'+z).textContent=`${a} mm`;$('s'+z).textContent=`Total em 5 dias: ${f(P[z],0)} mm (limites ${Z[z].limites.map((t,i)=>D.limites[z][i]-adj).join(' / ')} mm)`;num+=P[z]*M.areas[z];den+=M.areas[z];}
- $('oQb').textContent=`${qb} m³/s`;
- const Pb=num/den,lq=M.a+M.b*Pb+M.c*Math.log(qb),Q=Math.exp(lq),Q10=Math.exp(lq-1.2816*M.s),Q90=Math.exp(lq+1.2816*M.s);
- const h=cota(Q),h10=cota(Q10),h90=cota(Q90);
- const B=M.bv,lb=B.a+B.b*lq,Qbv=Math.exp(lb),Qbv10=Math.exp(lb-1.2816*Math.hypot(B.s,B.b*M.s)),Qbv90=Math.exp(lb+1.2816*Math.hypot(B.s,B.b*M.s)),Lbv=nivel(Qbv,D.limites.BV);
- const Lz=['Z1','Z2','Z3'].map(z=>nivel(P[z],D.limites[z].map(t=>t-adj))).sort((a,b)=>b-a);
- const Lch=Math.max(Lz[1],Math.max(Lz[0]-1,0)),Lr=nivel(h,D.limites.AF),Lr90=nivel(h90,D.limites.AF),n=Math.max(Lch,Lr,Lbv);
- const near0=H.eventos.reduce((a,e)=>Math.abs(Math.log(e.Q/Q))<Math.abs(Math.log(a.Q/Q))?e:a),near=Math.abs(Math.log(near0.Q/Q))<0.35?near0:null;
- const r=$('res');r.style.background=HEX[n];r.style.color=TXT[n];$('rN').textContent=N[n];
- $('rT').textContent=`${SIT[n]}.`;
- $('rG').innerHTML=[['Pico em Alberto Flores',`${f(Q,0)} m³/s`,`faixa provável ${f(Q10,0)} a ${f(Q90,0)}`],['Cota na régua',`${f(h,2)} m`,`faixa ${f(h10,1)} a ${f(h90,1)} m`],['Tempo de retorno',trEq(Q),'da vazão de pico'],
-  ['Nível pela chuva',N[Lch],`chuva média na bacia ${f(Pb,0)} mm`],['Nível pela régua',N[Lr],`no limite superior da faixa, ${N[Lr90]}`],['Vazão em Belo Vale',`${f(Qbv,0)} m³/s`,`faixa ${f(Qbv10,0)} a ${f(Qbv90,0)}, ${N[Lbv]}`],['Enchente mais parecida',near?near.rot:'Nenhuma',near?`${f(near.cota,2)} m, ${f(near.Q,0)} m³/s`:(Q<near0.Q?'abaixo das enchentes registradas':'acima das enchentes registradas')]]
-  .map(([a,b,c])=>`<div>${a}<b>${b}</b>${c}</div>`).join('');
- $('rNote').textContent=(Pb<100?'A chuva média simulada está abaixo de 100 mm, fora da faixa de calibração do modelo (eventos com 100 mm ou mais); o resultado é apenas indicativo. ':'')+'A faixa provável corresponde ao intervalo de 80% do modelo (erro padrão de 0,29 em ln Q). O simulador não substitui o acompanhamento da régua e de Belo Vale.';
- const ev=[...H.eventos].sort((a,b)=>a.cota-b.cota);
- const xs=[...ev.map(e=>e.rot),'Simulado'],ys=[...ev.map(e=>e.cota),h];
- regua(h,h10,h90,n);bvbar(Qbv,Qbv10,Qbv90,Lbv);
- Plotly.react('gCmp',[{type:'bar',x:xs,y:ys,marker:{color:ys.map((v,i)=>i===ys.length-1?'#111':HEX[nivel(v,D.limites.AF)])},text:ys.map(v=>f(v,2)+' m'),textposition:'outside',hovertemplate:'%{x}: %{y:.2f} m<extra></extra>',
-   error_y:{type:'data',symmetric:false,array:[...ev.map(()=>0),h90-h],arrayminus:[...ev.map(()=>0),h-h10],color:'#555',visible:true}}],
-  {...PL,xaxis:{...PL.xaxis,type:'category'},yaxis:{...PL.yaxis,title:{text:'Cota máxima na régua (m)',font:{size:11}},range:[0,Math.max(13,h90+1)]},...lines(D.limites.AF,'m'),showlegend:false},CFG);
-}
-function regua(h,h10,h90,n){
- const L=D.limites.AF,top=13,H0=300,W=330,y=v=>20+(1-Math.min(v,top)/top)*H0,x0=118,w=46;
- const bands=[0,...L,top].map((v,i,a)=>i<a.length-1?`<rect x="${x0}" y="${y(a[i+1])}" width="${w}" height="${y(v)-y(a[i+1])}" fill="${HEX[i]}" opacity=".85"/>`:'').join('');
- let ticks='';for(let v=0;v<=top;v++)ticks+=`<line x1="${x0+w}" x2="${x0+w+(v%2?6:10)}" y1="${y(v)}" y2="${y(v)}" stroke="#111"/><text x="${x0+w+14}" y="${y(v)+4}" font-size="11" fill="#333">${v}</text>`;
- const lim=L.map((v,i)=>`<text x="${x0-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#111">${N[i+1]} ${f(v,1)}</text>`).join('');
- const wl=`<rect x="${x0-4}" y="${y(h90)}" width="${w+8}" height="${Math.max(2,y(h10)-y(h90))}" fill="#1f6fb2" opacity=".25"/><line x1="${x0-12}" x2="${x0+w+12}" y1="${y(h)}" y2="${y(h)}" stroke="#111" stroke-width="3"/><polygon points="${x0+w+12},${y(h)} ${x0+w+22},${y(h)-6} ${x0+w+22},${y(h)+6}" fill="#111"/>`;
- $('rSvg').innerHTML=`<svg viewBox="0 0 ${W} ${H0+40}" style="width:100%;max-width:340px;display:block;margin:auto" role="img" aria-label="Régua simulada com cota ${f(h,2)} metros">${bands}${ticks}${lim}${wl}<text x="${x0+w+28}" y="${Math.max(14,y(h)-8)}" font-size="16" font-weight="700" fill="#111">${f(h,2)} m</text><text x="${x0+w+28}" y="${Math.max(28,y(h)+10)}" font-size="11" fill="#333">${f(h10,1)} a ${f(h90,1)} m</text></svg><p class="note" style="text-align:center">${N[n]} na sede. Faixa azul: intervalo provável de 80%.</p>`;
-}
-function bvbar(q,q10,q90,l){
- const L=D.limites.BV,mx=Math.max(1400,q90*1.1);
- Plotly.react('bvSim',[{type:'bar',x:['Belo Vale'],y:[q],marker:{color:HEX[l]},width:[0.45],text:[`${f(q,0)} m³/s`],textposition:'inside',insidetextanchor:'middle',textfont:{size:14,color:TXT[l]},
-  error_y:{type:'data',symmetric:false,array:[q90-q],arrayminus:[q-q10],color:'#555'},hovertemplate:'%{y:.0f} m³/s<extra></extra>'}],
-  {...PL,height:340,margin:{l:60,r:150,t:10,b:30},yaxis:{...PL.yaxis,title:{text:'Vazão de pico (m³/s)',font:{size:11}},range:[0,mx]},shapes:lines(L,'').shapes,annotations:L.map((v,i)=>({xref:'paper',x:1.02,y:v,xanchor:'left',yanchor:'middle',text:`${N[i+1]} ${f(v,0)}`,showarrow:false,font:{size:11,color:'#111'}})),showlegend:false},CFG);
-}
-function preset(p){const Z=D.zonas;setScen(/^\d+$/.test(p)?H.eventos[+p].rot:null);
- if(p==='atual'){$('obs').checked=true;for(const z of ['Z1','Z2','Z3'])$('a'+z).value=Math.round((Z[z].prev72||0)/5)*5;$('qb').value=Math.round((D.af.q||60)/5)*5;}
- else if(p==='zero'){$('obs').checked=true;for(const z of ['Z1','Z2','Z3'])$('a'+z).value=0;$('qb').value=Math.round((D.af.q||60)/5)*5;}
- else{const e=H.eventos[+p];$('obs').checked=false;for(const z of ['Z1','Z2','Z3'])$('a'+z).value=Math.min(350,Math.round(e.P5[z]/5)*5);$('qb').value=Math.min(400,Math.max(10,Math.round(e.Qbase/5)*5));}
- sim();}
-function trend(){
- const s=D.af.serie,L=D.limites.AF,now=new Date(D.af.t+'-03:00');
- const pts=s.map(([t,v])=>[(new Date(t+'-03:00')-now)/36e5,v]).filter(p=>p[0]>=-240);
- const rec=pts.filter(p=>p[0]>=-6),k=rec.length>1?(rec[rec.length-1][1]-rec[0][1])/((rec[rec.length-1][0]-rec[0][0])||1):0,h0=D.af.h;
- const proj=[[0,h0],[24,h0+k*24]];
- const eta=L.map(t=>t<=h0?'atingido':k>0.002?`${f((t-h0)/k,0)} h`:'não atinge na taxa atual');
- $('tG').innerHTML=[`Taxa nas últimas 6 h<b>${k>=0?'+':''}${f(k*100,1)} cm/h</b>`,...L.map((t,i)=>`${N[i+1]} (${f(t,1)} m)<b>${eta[i]}</b>`)].map(x=>`<div>${x}</div>`).join('').replace('<div>','<div>');
- const top=Math.max(11.5,h0+2);
- Plotly.react('gTr',[{x:pts.map(p=>p[0]),y:pts.map(p=>p[1]),mode:'lines',line:{color:'#1f6fb2',width:2},name:'Régua',hovertemplate:'%{x:.0f} h: %{y:.2f} m<extra></extra>'},
-  {x:proj.map(p=>p[0]),y:proj.map(p=>p[1]),mode:'lines',line:{color:'#111',width:2,dash:'dash'},name:'Projeção 24 h',hovertemplate:'+%{x:.0f} h: %{y:.2f} m<extra></extra>'}],
-  {...PL,xaxis:{...PL.xaxis,title:{text:'Horas em relação à última leitura',font:{size:11}}},yaxis:{...PL.yaxis,title:{text:'Cota (m)',font:{size:11}},range:[0,top]},...lines(L,'m'),showlegend:true,legend:{orientation:'h',y:1.08}},CFG);
-}
-function evs(){
- const sh=+$('sh').value;$('oSh').textContent=sh===1?'1 dia':`${sh} dias`;
- const now=new Date(D.af.t+'-03:00'),cur=D.af.serie.map(([t,v])=>[(new Date(t+'-03:00')-now)/864e5-sh,v]).filter(p=>p[0]>=-10-sh);
- const tr=H.eventos.map((e,i)=>({x:e.serie.map(r=>r[0]),y:e.serie.map(r=>r[1]),mode:'lines+markers',name:e.rot,line:{color:EVC[i],width:1.6},marker:{size:4},hovertemplate:`${e.rot}, dia %{x}: %{y:.2f} m<extra></extra>`}));
- tr.push({x:cur.map(p=>p[0]),y:cur.map(p=>p[1]),mode:'lines',name:'Atual',line:{color:'#111',width:3},hovertemplate:'Atual: %{y:.2f} m<extra></extra>'});
- Plotly.react('gEv',tr,{...PL,xaxis:{...PL.xaxis,title:{text:'Dias em relação ao pico',font:{size:11}},range:[-10,4]},yaxis:{...PL.yaxis,title:{text:'Cota (m)',font:{size:11}},range:[0,12.5]},...lines(D.limites.AF,'m'),showlegend:true,legend:{orientation:'h',y:-0.18}},CFG);
-}
-function chuva(){
- const zs=['Z1','Z2','Z3'],cats=['Atual',...H.eventos.map(e=>e.rot)];
- const tr=zs.map((z,i)=>({type:'bar',name:z,x:cats,y:[D.zonas[z].P5,...H.eventos.map(e=>e.P5[z])],marker:{color:['#1f6fb2','#5aa0d6','#9cc3e6'][i]},hovertemplate:`${z}: %{y:.0f} mm<extra></extra>`}));
- Plotly.react('gCh',tr,{...PL,xaxis:{...PL.xaxis,type:'category'},barmode:'group',yaxis:{...PL.yaxis,title:{text:'Chuva de 5 dias (mm)',font:{size:11}}},showlegend:true,legend:{orientation:'h',y:1.08}},CFG);
-}
-(async()=>{
- try{[D,H]=await Promise.all([fetch('data.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()),fetch('historico.json').then(r=>r.json())]);}
- catch(e){$('warn').hidden=false;$('warn').textContent='Não foi possível carregar os dados.';return;}
- $('upd').textContent='Conectando à telemetria';
- try{D=await AoVivo.atualizar(D);}catch(e){console.error(e);}
- $('upd').textContent='Dados de '+new Date(D.atualizado+'-03:00').toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
- $('presetsH').innerHTML=H.eventos.map((e,i)=>`<button type="button" data-p="${i}">${e.rot} · ${f(e.cota,2)} m</button>`).join('');
- for(const b of document.querySelectorAll('[data-p]'))b.addEventListener('click',()=>{preset(b.dataset.p);$('res').scrollIntoView({behavior:'smooth',block:'center'});});
- for(const id of ['aZ1','aZ2','aZ3','qb','obs'])$(id).addEventListener('input',()=>{setScen(null);sim();});
- $('sh').addEventListener('input',evs);
- preset('atual');trend();evs();chuva();
-})();
-}
-</script>
+<footer class="wrap foot"><p>Este painel constitui uma ferramenta independente de monitoramento e apoio à avaliação hidrológica. Os níveis apresentados não representam alertas oficiais e não substituem as orientações da Defesa Civil (199) e dos órgãos competentes. O simulador não é previsão oficial e não deve ser usado isoladamente para decidir evacuação.</p><p>Painel elaborado por Yuri Silva Mendes Vieira</p></footer>
 </body>
 </html>

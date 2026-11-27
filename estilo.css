@@ -101,10 +101,20 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .sim{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;margin-top:12px}
 @media(max-width:900px){.sim{grid-template-columns:minmax(0,1fr)}}
 .ctl{display:grid;gap:12px}
-.ctl label{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:4px 10px;align-items:center;font-size:14px}
-.ctl label span{grid-column:1/-1;color:var(--mute);font-size:12.5px}
+.campo{display:grid;gap:4px;font-size:14px}
+.campo>label{font-weight:500}
+.par{display:grid;grid-template-columns:minmax(0,1fr) 96px auto;gap:8px;align-items:center}
+.par span{color:var(--mute);font-size:13px}
+.par input[type=number]{width:96px;min-height:40px;font:600 16px "IBM Plex Sans",sans-serif;padding:6px 8px;border:1px solid #b9c4cb;border-radius:8px;text-align:right}
+.campo .par:has(> input[type=number]:only-of-type):not(:has(input[type=range])){grid-template-columns:96px auto}
+.ajuda{color:var(--mute);font-size:12.5px}
+.manual{display:grid;gap:4px;background:#fff3e0;border:1px solid var(--n2);border-radius:8px;padding:8px 10px;font-size:13px}
+.manual[hidden]{display:none}
+.manual input{width:140px;min-height:40px;font:600 16px "IBM Plex Sans",sans-serif;padding:6px 8px;border:1px solid #b9c4cb;border-radius:8px}
+.chk{display:flex;gap:10px;align-items:center;font-size:14px}
+.chk input{width:22px;height:22px;flex:none}
 .ctl input[type=range]{width:100%;accent-color:var(--acc);min-height:32px}
-.ctl output{font:700 18px "IBM Plex Sans Condensed",sans-serif;text-align:right;white-space:nowrap}
+.ctl output{font:700 16px "IBM Plex Sans Condensed",sans-serif;white-space:nowrap}
 .presets{display:flex;flex-wrap:wrap;gap:6px}
 .presets button{min-height:38px;padding:6px 10px;font-size:13px}
 .res{border-radius:12px;padding:18px;color:#111}
@@ -116,6 +126,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .simvis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
 .simvis h3{margin:0 0 6px}
 #bvSim{height:340px}
+@media(max-width:600px){.rgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.rgrid b{white-space:normal;font-size:19px}.rgrid.r4{grid-template-columns:repeat(2,minmax(0,1fr))}#bvSim{height:300px}.res .big{font-size:36px}}
 @media(max-width:760px){.simvis{grid-template-columns:1fr}.scen{display:block;margin:6px 0 0}}
 .scen[hidden]{display:none}
 .leg span svg{vertical-align:middle;margin-right:4px}
@@ -139,3 +150,18 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .pbar{position:relative;height:12px;background:#eceff1;border-radius:6px;min-width:140px;margin-bottom:3px}
 .pbar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
 .pbar s{position:absolute;top:-3px;bottom:-3px;width:2px;background:#111}
+
+.rgrid.r4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.fr{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;background:#eceff1;color:#333;white-space:nowrap;font-style:normal}
+.fr-atualizado{background:#e3f4ea;color:#1d6b3e}.fr-atrasado{background:#fff4cc;color:#6b5300}.fr-desatualizado{background:#ffe6cc;color:#7a3d00}
+.fr-indisponivel,.fr-futuro{background:#f6d6d6;color:#7a1414}.fr-sem-dado{background:#eceff1;color:#555}
+.map .zs{font:500 11px "IBM Plex Sans",sans-serif;fill:#333;paint-order:stroke;stroke:#fff;stroke-width:3px}
+.semgrafico{display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:8px;padding:12px}
+table.est td{vertical-align:top}
+table.est small{color:#555}
+.foot p{margin:0 0 6px;max-width:980px}
+code{font-size:12px;word-break:break-all}
+@media(max-width:600px){.tabs a{padding:8px 10px;font-size:14px}.upd{flex-wrap:wrap}.tempos{font-size:11.5px}.kpi b{font-size:24px;white-space:normal}.fc{grid-template-columns:minmax(0,1fr)}.zbt{width:100%}.two .regua{height:320px}}
+@media(max-width:600px){.rgrid.r4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi-s{display:flex;flex-direction:column;gap:2px}.kpi-s b{white-space:nowrap}
+@media(max-width:600px){header.top{position:static}.steps li{font-size:11px;padding:8px 2px 6px}.tempos span{display:block}}
