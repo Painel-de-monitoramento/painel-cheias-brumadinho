@@ -66,9 +66,9 @@ class Frescor(unittest.TestCase):
     def test_classes(self):
         self.assertEqual(dados.frescor(-20 / 60), 'futuro')
         self.assertEqual(dados.frescor(-4 / 60), 'atualizado')
-        self.assertEqual(dados.frescor(0.6), 'atualizado')       # cadência 15 min: até 45 min
-        self.assertEqual(dados.frescor(1.1), 'atrasado')
-        self.assertEqual(dados.frescor(2.5), 'desatualizado')
+        self.assertEqual(dados.frescor(0.6), 'atualizado')       # cadência 15 min + atraso normal da ANA: até 2 h
+        self.assertEqual(dados.frescor(1.9), 'atualizado')
+        self.assertEqual(dados.frescor(2.5), 'atrasado')
         self.assertEqual(dados.frescor(3.2), 'indisponivel')
         self.assertEqual(dados.frescor(1.4, 60), 'atualizado')   # estação horária
         self.assertEqual(dados.frescor(None), 'sem dado')
