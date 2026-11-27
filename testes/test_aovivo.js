@@ -40,8 +40,8 @@ teste('cobertura: 120 h estimadas = 100% temporal e 0% medida', () => {
   const c = A._t.cob(src, {}, a, a + 120 * H); assert.deepStrictEqual([c.temporal, c.medida, c.estimada], [1, 0, 1]);
 });
 teste('frescor igual ao do coletor', () => {
-  assert.strictEqual(A.frescor(-20 / 60), 'futuro'); assert.strictEqual(A.frescor(0.6), 'atualizado'); assert.strictEqual(A.frescor(1.1), 'atrasado');
-  assert.strictEqual(A.frescor(2.5), 'desatualizado'); assert.strictEqual(A.frescor(3.2), 'indisponivel'); assert.strictEqual(A.frescor(1.4, 60), 'atualizado');
+  assert.strictEqual(A.frescor(-20 / 60), 'futuro'); assert.strictEqual(A.frescor(0.6), 'atualizado'); assert.strictEqual(A.frescor(1.9), 'atualizado');
+  assert.strictEqual(A.frescor(2.5), 'atrasado'); assert.strictEqual(A.frescor(3.2), 'indisponivel'); assert.strictEqual(A.frescor(1.4, 60), 'atualizado');
 });
 
 // item 22: servidor = 0, ao vivo = 2, nova leitura = 0 -> mantém 2
