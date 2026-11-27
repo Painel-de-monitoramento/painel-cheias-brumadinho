@@ -79,7 +79,7 @@ window.C = (() => {
     let v = null; try { v = await json('versao.json', 8000); } catch (e) { return {confirmada: false, motivo: 'versao.json indisponível'}; }
     try {
       const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 8000);
-      const r = await fetch('https://api.github.com/repos/yurismvieira-dot/painel-cheias-brumadinho/deployments?environment=github-pages&per_page=5', {signal: ctl.signal}); clearTimeout(to);
+      const r = await fetch('https://api.github.com/repos/Painel-de-monitoramento/painel-cheias-brumadinho/deployments?environment=github-pages&per_page=5', {signal: ctl.signal}); clearTimeout(to);
       if (!r.ok) throw new Error(r.status);
       const lista = (await r.json()).filter(x => x.sha === v.commit);
       if (!lista.length) return {...v, confirmada: false, motivo: 'implantação deste snapshot não localizada'};
