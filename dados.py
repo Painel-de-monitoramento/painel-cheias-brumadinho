@@ -57,6 +57,16 @@ def chuva_horaria(registros, horas):
     return {h: (acc[h] if n.get(h, 0) >= minimo else None) for h in horas}, n, esperado
 
 
+def chuva_horaria_variavel(registros, horas):
+    """Estações de cadência variável (CEMADEN: a cada 10 min com chuva, a cada hora sem chuva). Cada registro traz a chuva
+    acumulada desde o anterior, no fim do intervalo; a hora é aceita como medida com ao menos um registro."""
+    acc, n = {}, {}
+    for ts, v in registros:
+        if v is None or not (0 <= v < 200): continue
+        k = hora_ana(ts); acc[k] = acc.get(k, 0.0) + v; n[k] = n.get(k, 0) + 1
+    return {h: acc.get(h) for h in horas}, n
+
+
 def janela(serie, a, b):
     """Soma sem preencher lacunas no intervalo [a, b). Retorna (valor ou None, cobertura 0 a 1)."""
     n = int((b - a).total_seconds() // 3600)
