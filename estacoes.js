@@ -19,8 +19,15 @@ function render(d) {
     return `<tr><td data-l="Estação"><b>${esc(x.nome)}</b><br><small>${esc(x.cod)} · ${esc(x.zona)}</small></td><td data-l="Uso">${esc(USO(x, d))}</td>
       <td data-l="Nível">${cel(v.nivel, 'm', 2)}</td><td data-l="Vazão">${cel(v.vazao, 'm³/s', 1)}</td>
       <td data-l="Chuva">${v.chuva ? cel(v.chuva, 'mm', 1) + `<br><small>24 h: ${f(x.chuva24, 1)} mm, ${f((x.chuva24_cob ?? 0) * 100, 0)}% das horas</small>` : cel(null)}</td><td data-l="Coleta"><small>${col}</small></td></tr>`; }).join('');
-  const Z = d.zonas.Z1;
-  $('z1').innerHTML = `<p><b>Situação atual da Z1:</b> ${esc((Z.pluviometros || []).length ? 'pluviômetro ' + Z.pluviometros.join(', ') : 'sem pluviômetro com dado')}; nos últimos 5 dias, ${f((Z.cob5_medida ?? 0) * 100, 0)}% das horas foram medidas e ${f((Z.cob5_estimada ?? 0) * 100, 0)}% estimadas por modelo.${Z.fontes5 ? ' Sequência das últimas 48 h (M = medida, E = estimada, - = sem dado): <code>' + esc(Z.fontes5.slice(-48)) + '</code>' : ''}</p>`;
+  // pluviometria considerada no cálculo de cada zona
+  $('zpl').innerHTML = Object.keys(d.zonas).map(z => { const Z = d.zonas[z], usa = Z.pluviometros || [], cob = Z.pluviometros_5d || {};
+    const fora = d.estacoes.filter(x => x.zona === z && !usa.includes(x.cod) && (x.papel || '').includes('chuva'));
+    const lin = x => { const v = x.variaveis?.chuva; return `<tr><td><b>${esc(x.nome)}</b><br><small>${esc(x.cod)} · ${esc(x.rede || (x.cod.length === 7 ? 'IGAM' : 'ANA'))}</small></td><td class="n">${cob[x.cod] != null ? f(cob[x.cod] * 100, 0) + '%' : 'sem dado'}</td><td class="n">${x.chuva24 != null ? f(x.chuva24, 1) + ' mm' : 'sem dado'}</td><td>${v ? selo(v.frescor) : '<span class="note">sem dado</span>'}</td></tr>`; };
+    const est = c => d.estacoes.find(x => x.cod === c) || {cod: c, nome: c};
+    return `<div class="panel"><h3>${z} · ${esc(Z.nome)}</h3>
+      <p class="note">${usa.length} pluviômetro${usa.length === 1 ? '' : 's'} no cálculo. Nos últimos 5 dias, ${f((Z.cob5_medida ?? 0) * 100, 0)}% das horas foram medidas e ${f((Z.cob5_estimada ?? 0) * 100, 0)}% estimadas pelo modelo. Chuva de 5 dias: <b>${f(Z.P5, 0)} mm</b>.</p>
+      <div class="scroll"><table class="zpt"><thead><tr><th>Pluviômetro no cálculo</th><th>Horas medidas em 5 dias</th><th>Chuva em 24 h</th><th>Situação</th></tr></thead><tbody>${usa.map(c => lin(est(c))).join('')}</tbody></table></div>
+      ${fora.length ? `<p class="note">Fora do cálculo: ${fora.map(x => `${esc(x.nome)} (${esc(x.cod)}), ${x.ultimo ? 'sem transmissão desde ' + esc(dtf(x.ultimo)) : 'sem medição suficiente no último mês'}`).join('; ')}.</p>` : ''}</div>`; }).join('');
   $('upd').textContent = falha ? `Falha ao atualizar (${falha}) · dados de ${dtf(d.coleta)}` : d.ao_vivo ? `Verificado às ${hm(d.verificado)}` : `Última coleta ${dtf(d.coleta)} · conectando à telemetria`;
   $('dot').className = 'dot' + (falha || (C.idade(d.coleta) > 1 && !(d.ao_vivo && d.ao_vivo.ok)) ? ' old' : '');
 }

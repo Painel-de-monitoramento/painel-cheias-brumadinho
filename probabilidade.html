@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://telemetriaws1.ana.gov.br https://api.open-meteo.com https://ensemble-api.open-meteo.com https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Probabilidade de enchente Brumadinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+<script src="vendor/plotly-2.35.2.min.js" integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" defer></script>
+<script src="motor.js" defer></script>
+<script src="comum.js" defer></script>
+<script src="aovivo.js" defer></script>
+<script src="probabilidade.js" defer></script>
+</head>
+<body>
+<header class="top"><div class="wrap hdr">
+ <h1>Monitoramento de cheias do Rio Paraopeba em Brumadinho/MG</h1>
+ <nav class="tabs"><a href="index.html">Painel em tempo real</a><a class="on" href="probabilidade.html">Probabilidade de enchente</a><a href="simulador.html">Simulador e tendências</a><a href="estacoes.html">Estações e leituras</a></nav>
+ <div class="upd"><span class="dot" id="dot"></span><span id="upd">Carregando dados</span><button id="btnUpd" type="button">Atualizar</button></div>
+</div></header>
+<main class="wrap">
+<div id="warn" class="warn" hidden></div>
+
+<section>
+ <h2>Probabilidade de enchente em Brumadinho</h2>
+ <p class="note" id="fonte">Calculando a partir da chuva medida, da previsão por conjunto e das relações do estudo hidrológico.</p>
+ <div class="pb-head" id="head"></div>
+ <p class="pb-resumo" id="resumo"></p>
+</section>
+
+<section>
+ <h2>Probabilidade por nível de controle</h2>
+ <p class="note">Probabilidade de a régua de Alberto Flores atingir cada nível em algum momento do período, e probabilidade de a regra de chuva do estudo (chuva de 5 dias no limite em duas zonas) acionar o nível. A régua mede a cheia que chega à sede; a regra de chuva é o gatilho antecipado usado pela Defesa Civil.</p>
+ <div class="scroll"><table class="pbt"><thead><tr><th>Nível</th><th>O que acontece na sede</th><th id="h5">Próximos 5 dias</th><th id="h10">Próximos 10 dias</th></tr></thead><tbody id="tbP"></tbody></table></div>
+</section>
+
+<section>
+ <h2>Evolução da probabilidade dia a dia</h2>
+ <p class="note">Probabilidade acumulada de atingir cada nível até o dia indicado. As linhas cheias referem-se à régua de Alberto Flores; a linha tracejada, ao acionamento do nível de Atenção pela regra de chuva.</p>
+ <div class="fig tall" id="gP"></div>
+</section>
+
+<section>
+ <h2>Cota provável em Alberto Flores</h2>
+ <p class="note">Cota de pico associada à chuva de 5 dias que termina em cada dia. A linha tracejada é o cenário central (P50) e a faixa azul cobre 80% dos cenários (P10 a P90), somando a incerteza da chuva prevista e a do modelo chuva-vazão. Quando a chuva prevista fica abaixo da faixa em que ocorreram as enchentes, a cota é mantida no valor atual.</p>
+ <div class="fig tall" id="gH"></div>
+</section>
+
+<section>
+ <h2>Chuva de 5 dias prevista na bacia</h2>
+ <p class="note">Chuva média de 5 dias nas três zonas, ponderada pela área, somando a chuva já medida à prevista por cada cenário. A linha vinho marca 100 mm: nenhuma das enchentes registradas ocorreu com menos chuva que isso (a menor foi de 107 mm, em 1992).</p>
+ <div class="fig tall" id="gC"></div>
+</section>
+
+<section class="crit">
+ <h2>Como a probabilidade é calculada</h2>
+ <ol>
+  <li><b>Chuva.</b> A previsão por conjunto do Open-Meteo traz 51 cenários do modelo europeu ECMWF (ou 31 do GFS, se o primeiro estiver indisponível) para 12 pontos de grade, quatro em cada zona. Em cada cenário, a chuva de 5 dias de cada zona soma a chuva já medida pelos pluviômetros do painel e a prevista pelo cenário.</li>
+  <li><b>Regra de chuva.</b> Em cada cenário e em cada dia, aplica-se a regra do estudo: o nível é acionado quando a chuva de 5 dias atinge o limite em duas zonas, e uma zona isolada aciona o nível inferior. Com solo úmido, os limites são reduzidos em 30 mm. A probabilidade é a fração dos cenários que acionam o nível.</li>
+  <li><b>Vazão e cota.</b> A chuva média da bacia entra na relação do estudo ln Q = 3,14 + 0,0090 × P5 + 0,39 × ln Q<sub>base</sub>, com a vazão atual de Alberto Flores como vazão de base. O erro do modelo (0,29 em ln Q) é somado à incerteza da chuva, e a vazão é convertida em cota pela curva da régua.</li>
+  <li><b>Domínio do modelo.</b> A relação foi calibrada com as 9 enchentes registradas, todas com 107 mm ou mais de chuva média de 5 dias. Abaixo de 100 mm não há enchente no histórico, e o cenário é tratado como sem enchente: a cota permanece na atual.</li>
+  <li><b>Resultado.</b> A probabilidade de cada nível é a média, entre os cenários, da chance de a cota de pico ultrapassar o limite. A classificação é: muito baixa (abaixo de 5%), baixa (5% a 20%), moderada (20% a 50%), alta (50% a 80%) e muito alta (acima de 80%).</li>
+ </ol>
+ <p>Limitações: a previsão por conjunto suaviza chuvas muito localizadas, e a relação chuva-vazão estima o pico da cheia, não o horário exato; o pico costuma chegar à régua até um dia depois da chuva. A probabilidade é recalculada a cada atualização e deve ser lida junto com a régua, a vazão de Belo Vale e as orientações da Defesa Civil.</p>
+</section>
+</main>
+<footer class="wrap foot"><p>Este painel constitui uma ferramenta independente de monitoramento e apoio à avaliação hidrológica. A probabilidade apresentada é uma estimativa estatística, não constitui alerta oficial e não substitui as orientações da Defesa Civil (199) e dos órgãos competentes.</p><p>Painel elaborado por Yuri Silva Mendes Vieira</p></footer>
+</body>
+</html>

@@ -18,7 +18,7 @@
 <body>
 <header class="top"><div class="wrap hdr">
  <h1>Monitoramento de cheias do Rio Paraopeba em Brumadinho/MG</h1>
- <nav class="tabs"><a href="index.html">Painel em tempo real</a><a class="on" href="simulador.html">Simulador e tendências</a><a href="estacoes.html">Estações e leituras</a></nav>
+ <nav class="tabs"><a href="index.html">Painel em tempo real</a><a href="probabilidade.html">Probabilidade de enchente</a><a class="on" href="simulador.html">Simulador e tendências</a><a href="estacoes.html">Estações e leituras</a></nav>
  <div class="upd"><span class="dot" id="dot"></span><span id="upd">Carregando dados</span><button id="btnRec" type="button">Recarregar condições atuais</button></div>
 </div></header>
 <main class="wrap">
@@ -64,16 +64,9 @@
 
 <section>
  <h2>Tendência da régua de Alberto Flores</h2>
- <p class="note">Últimos 10 dias de cota e projeção linear pela taxa de variação das últimas 6 horas, com o tempo estimado para atingir cada nível se essa taxa se mantiver. A projeção não é previsão: a taxa muda com a chuva e com a chegada da onda de montante.</p>
+ <p class="note">Últimos 3 dias da régua e projeção de 12 horas pela reta das últimas 6 horas. A faixa provável vem do erro real desse mesmo método nos últimos 30 dias: em cada hora, a reta das 6 h anteriores foi projetada e comparada com a leitura que de fato ocorreu. Além de 12 horas a projeção perde validade, pois o ritmo muda com a chuva e com a chegada da onda de montante; para os próximos dias, use a aba Probabilidade de enchente.</p>
  <div class="rgrid r4" id="tG"></div>
  <div class="fig tall" id="gTr"></div>
-</section>
-
-<section>
- <h2>Trajetória atual comparada à subida das enchentes</h2>
- <p class="note">Curvas da régua nos 10 dias anteriores e 4 dias posteriores ao pico de cada enchente. A linha preta é a régua atual. Use o controle para supor quantos dias faltam para um eventual pico e comparar a subida atual com a das cheias passadas.</p>
- <div class="ctl panel" style="margin-top:10px"><div class="campo"><label for="sh">Supor que o pico ocorreria daqui a <output id="oSh"></output></label><input type="range" id="sh" min="0" max="8" step="1" value="3"></div></div>
- <div class="fig tall" id="gEv"></div>
 </section>
 
 <section>

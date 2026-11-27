@@ -165,3 +165,33 @@ code{font-size:12px;word-break:break-all}
 @media(max-width:600px){.rgrid.r4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .kpi-s{display:flex;flex-direction:column;gap:2px}.kpi-s b{white-space:nowrap}
 @media(max-width:600px){header.top{position:static}.steps li{font-size:11px;padding:8px 2px 6px}.tempos span{display:block}}
+/* textos justificados em todas as abas */
+p,.note,li,.ajuda,.bn-t,.bn-s,.alerts li{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+.leg span,.kpi em,.rgrid div,.chip,td,th{hyphens:manual}
+/* legendas em HTML */
+.leg{align-items:center}
+.leg span{display:inline-flex;align-items:center;gap:5px}
+.leg i.hach{background:repeating-linear-gradient(135deg,#5aa0d6 0 3px,#d8e8f6 3px 5px)}
+.leg i.hach2{background:repeating-linear-gradient(45deg,#8e1537 0 2px,#fff 2px 5px)}
+.legz{margin:6px 0 2px;color:#333}
+.legrg{margin:8px 0 0;color:#333;max-width:1100px}
+.legsim{justify-content:flex-start;margin-top:10px;font-size:12.5px;color:#333}
+.pbar.mini{display:inline-block;width:46px;min-width:46px;height:10px;margin:0 2px 0 0;vertical-align:middle}
+.pbar s.m20{background:#6b7a84}.pbar s.m22{background:#111;width:3px}
+/* probabilidade */
+.pb-head{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
+@media(max-width:900px){.pb-head{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pb-card{border:1px solid var(--line);border-top:8px solid #ccc;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.pb-card span{font-size:14px;color:var(--mute);font-weight:600}
+.pb-card b{font:700 40px/1 "IBM Plex Sans Condensed",sans-serif}
+.pb-card i{font-style:normal;font-size:12px;font-weight:700;align-self:flex-start;padding:3px 9px;border-radius:10px}
+.pb-card small{font-size:12.5px;color:var(--mute)}
+.pb-resumo{font-size:16px;margin:14px 0 0;max-width:1100px}
+.pbc{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px}
+.pbt td b{font-size:16px}
+.pbt tr.pbr td{background:#fafbfc}
+/* pluviometria por zona */
+.zpl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:12px}
+@media(max-width:1100px){.zpl{grid-template-columns:minmax(0,1fr)}}
+.zpl h3{margin-top:0}
+.zpt td,.zpt th{font-size:13px;padding:6px 8px}

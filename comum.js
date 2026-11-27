@@ -61,5 +61,32 @@ window.C = (() => {
       return porCommit ? {...v, confirmada: true, publicado: porCommit.created_at, vinculo: 'commit'} : {...v, confirmada: false, motivo: 'implantação sem confirmação de sucesso'};
     } catch (e) { return {...v, confirmada: false, motivo: 'sem resposta da API do GitHub'}; }
   }
-  return {HEX, TXT, CINZA, esc, ok, f, ms, dtf, hm, ddm, idade, idh, selo, FRESCOR, json, plot, PL, CFG, estreito, publicacao, temPlotly};
+  // tendência: reta de mínimos quadrados das últimas `horas`, projetada `proj` horas. A faixa provável (80%) vem de um
+  // retroteste do mesmo método na própria série: em cada hora dos últimos 30 dias, a reta das 6 h anteriores foi projetada
+  // e comparada com a leitura real; P10 e P90 desses erros, para cada horizonte, formam a faixa.
+  function reta(P) { const n = P.length, mx = P.reduce((a, p) => a + p[0], 0) / n, my = P.reduce((a, p) => a + p[1], 0) / n, sxx = P.reduce((a, p) => a + (p[0] - mx) ** 2, 0);
+    if (!sxx) return null; const b = P.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / sxx; return t => my + b * (t - mx); }
+  function tendencia(serie, horas, proj) {
+    const P = (serie || []).filter(p => p && p[1] != null).map(p => [Date.parse(String(p[0]).slice(0, 16) + ':00Z'), p[1]]).filter(p => Number.isFinite(p[0]));
+    if (P.length < 3) return null;
+    const H = 36e5, fim = P[P.length - 1][0], jan = (t0, t1) => P.filter(p => p[0] > t0 && p[0] <= t1);
+    const W = jan(fim - horas * H, fim); if (W.length < 3 || (fim - W[0][0]) < horas * H * 0.5) return null;
+    const g = reta(W); if (!g) return null;
+    // retroteste
+    const err = Array.from({length: proj}, () => []), perto = t => { let lo = 0, hi = P.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (P[m][0] < t) lo = m + 1; else hi = m; } return P[lo]; };
+    for (let t = fim - 30 * 24 * H; t <= fim - H; t += H) { const w = jan(t - horas * H, t); if (w.length < 3 || t - w[0][0] < horas * H * 0.5) continue; const r = reta(w); if (!r) continue;
+      for (let h = 1; h <= proj; h++) { const tt = t + h * H; if (tt > fim) break; const v = perto(tt); if (Math.abs(v[0] - tt) <= 0.6 * H) err[h - 1].push(v[1] - r(tt)); } }
+    const q = (a, p) => { const s = [...a].sort((x, y) => x - y), i = (s.length - 1) * p, lo = Math.floor(i); return s.length ? s[lo] + (s[Math.min(lo + 1, s.length - 1)] - s[lo]) * (i - lo) : null; };
+    const iso = t => new Date(t).toISOString().slice(0, 16), xs = [], c = [], lo = [], hi = [], v0 = P[P.length - 1][1];
+    xs.push(iso(fim)); c.push(v0); lo.push(v0); hi.push(v0);
+    for (let h = 1; h <= proj; h++) { const t = fim + h * H, v = g(t) - g(fim) + v0, e = err[h - 1]; xs.push(iso(t)); c.push(Math.max(0, v));
+      lo.push(Math.max(0, v + (e.length >= 20 ? q(e, 0.1) : 0))); hi.push(Math.max(0, v + (e.length >= 20 ? q(e, 0.9) : 0))); }
+    return {x: xs, c, lo, hi, taxa_h: (g(fim) - g(fim - H)), t1: xs[xs.length - 1], faixa: err[proj - 1].length >= 20};
+  }
+  // traços: faixa provável, projeção central tracejada; o texto vai na legenda, não dentro do gráfico
+  const trTraces = (T, nome, u, nd) => T ? [
+    {type: 'scatter', mode: 'lines', x: T.x, y: T.hi, line: {width: 0}, hoverinfo: 'skip', showlegend: false},
+    ...(T.faixa ? [{type: 'scatter', mode: 'lines', x: T.x, y: T.lo, fill: 'tonexty', fillcolor: 'rgba(31,111,178,.20)', line: {width: 0}, name: 'Faixa provável da projeção (80%)', hovertemplate: `Faixa provável: %{y:.${nd}f} ${u}<extra></extra>`}] : []),
+    {type: 'scatter', mode: 'lines', x: T.x, y: T.c, name: nome, line: {color: '#1f5fbf', width: 3, dash: 'dash'}, hovertemplate: `Projeção: %{y:.${nd}f} ${u}<extra></extra>`}] : [];
+  return {tendencia, trTraces, HEX, TXT, CINZA, esc, ok, f, ms, dtf, hm, ddm, idade, idh, selo, FRESCOR, json, plot, PL, CFG, estreito, publicacao, temPlotly};
 })();

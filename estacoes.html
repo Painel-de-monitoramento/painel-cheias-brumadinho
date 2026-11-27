@@ -18,7 +18,7 @@
 <body>
 <header class="top"><div class="wrap hdr">
  <h1>Monitoramento de cheias do Rio Paraopeba em Brumadinho/MG</h1>
- <nav class="tabs"><a href="index.html">Painel em tempo real</a><a href="simulador.html">Simulador e tendências</a><a class="on" href="estacoes.html">Estações e leituras</a></nav>
+ <nav class="tabs"><a href="index.html">Painel em tempo real</a><a href="probabilidade.html">Probabilidade de enchente</a><a href="simulador.html">Simulador e tendências</a><a class="on" href="estacoes.html">Estações e leituras</a></nav>
  <div class="upd"><span class="dot" id="dot"></span><span id="upd">Carregando dados</span><button id="btnUpd" type="button">Atualizar</button></div>
 </div></header>
 <main class="wrap">
@@ -33,11 +33,10 @@
  <p class="note">Situação de cada variável transmitida (nível da régua, vazão e chuva), resultado da última coleta do servidor e da última consulta feita por este navegador.</p>
  <div class="scroll"><table class="stack est"><thead><tr><th>Estação</th><th>Uso no painel</th><th>Nível da régua</th><th>Vazão</th><th>Chuva</th><th>Coleta</th></tr></thead><tbody id="tbEst"></tbody></table></div>
 </section>
-<section class="crit">
- <h2>Pluviometria da zona Z1</h2>
- <div id="z1"></div>
- <p>A única estação automática da Z1 disponível na telemetria pública da ANA é a de Conselheiro Lafaiete (IGAM, 2043133). Ela transmite de forma intermitente, em geral só entre 6 h e 18 h, e por isso a chuva noturna da Z1 vem do modelo meteorológico. Nenhuma das demais estações da Z1 consultadas tem dado na telemetria da ANA: Congonhas linígrafo (2043013), Conselheiro Lafaiete ANA (2043005), Ouro Branco INMET (2043052) e os pluviômetros automáticos do CEMADEN em Congonhas e Conselheiro Lafaiete (2043099 a 2043108).</p>
- <p>Os pluviômetros do CEMADEN são a melhor opção para medir a Z1 de forma automática, mas o acesso é feito pela plataforma de dados do CEMADEN (PED), que exige cadastro e um token de acesso temporário. A integração está registrada como pendência no README do repositório e só deve ser ativada depois de testada com uma consulta real.</p>
+<section>
+ <h2>Pluviometria usada em cada zona</h2>
+ <p class="note">Como o site calcula a chuva de cada zona: em cada hora, a chuva da zona é a média dos pluviômetros dela que mediram naquela hora. Entram no cálculo os pluviômetros da ANA, do IGAM e do CEMADEN localizados dentro da zona que têm mais de 72 horas de medição no último mês. Quando nenhum pluviômetro da zona mediu em uma hora, a chuva dessa hora vem do modelo meteorológico (Open-Meteo) e fica marcada como estimada. A chuva de 5 dias é a soma das últimas 120 horas concluídas.</p>
+ <div class="zpl" id="zpl"></div>
 </section>
 </main>
 <footer class="wrap foot"><p>Este painel constitui uma ferramenta independente de monitoramento e apoio à avaliação hidrológica. Os níveis apresentados não representam alertas oficiais e não substituem as orientações da Defesa Civil (199) e dos órgãos competentes.</p><p>Painel elaborado por Yuri Silva Mendes Vieira</p></footer>

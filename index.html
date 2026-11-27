@@ -18,7 +18,7 @@
 <body>
 <header class="top"><div class="wrap hdr">
  <h1>Monitoramento de cheias do Rio Paraopeba em Brumadinho/MG</h1>
- <nav class="tabs"><a class="on" href="index.html">Painel em tempo real</a><a href="simulador.html">Simulador e tendências</a><a href="estacoes.html">Estações e leituras</a></nav>
+ <nav class="tabs"><a class="on" href="index.html">Painel em tempo real</a><a href="probabilidade.html">Probabilidade de enchente</a><a href="simulador.html">Simulador e tendências</a><a href="estacoes.html">Estações e leituras</a></nav>
  <div class="upd"><span class="dot" id="dot"></span><span id="upd">Carregando dados</span><button id="btnUpd" type="button">Atualizar</button></div>
  <div class="tempos" id="tempos"></div>
 </div></header>
@@ -61,7 +61,8 @@
 
 <section>
  <h2>Chuva acumulada por zona</h2>
- <p class="note">Acumulados até a última hora concluída. Ponteiro na chuva de 5 dias em relação aos limites de cada nível. No gráfico, chuva diária medida por pluviômetro (azul escuro), estimada por modelo ou mista onde faltou medição (azul médio, hachurada) e prevista (azul claro), com a curva da chuva móvel de 5 dias. Dias sem dado ficam em branco e interrompem a curva.</p>
+ <p class="note">Acumulados até a última hora concluída. O ponteiro mostra a chuva de 5 dias em relação aos limites de cada nível. Dias sem dado ficam em branco e interrompem a curva.</p>
+ <div class="leg legz"><span><i style="background:#1f6fb2"></i>Chuva diária medida por pluviômetro</span><span><i class="hach"></i>Chuva diária estimada por modelo onde faltou medição</span><span><i style="background:#c6dcef;border:1px solid #5aa0d6"></i>Chuva diária prevista</span><span><svg width="26" height="10"><line x1="0" x2="26" y1="5" y2="5" stroke="#111" stroke-width="2"/></svg>Chuva de 5 dias medida</span><span><svg width="26" height="10"><line x1="0" x2="26" y1="5" y2="5" stroke="#111" stroke-width="2" stroke-dasharray="5 3"/></svg>Chuva de 5 dias somando a previsão</span><span><svg width="26" height="10"><line x1="0" x2="26" y1="5" y2="5" stroke="#f2c230" stroke-width="2" stroke-dasharray="2 2"/></svg>Limites de cada nível</span><span><svg width="12" height="14"><line x1="6" x2="6" y1="0" y2="14" stroke="#8a99a3" stroke-dasharray="3 2"/></svg>Hoje</span></div>
  <div class="zones" id="zones"></div>
 </section>
 
@@ -78,6 +79,7 @@
 <section>
  <h2>Réguas no eixo do Paraopeba</h2>
  <p class="note">Somente as réguas do próprio Rio Paraopeba, de montante para jusante, em que a cheia pode ser acompanhada: PCH Salto do Paraopeba (montante, Z2), Belo Vale e Alberto Flores. Belo Vale e Alberto Flores têm limites de controle do estudo; a régua de montante não tem limite de controle e é comparada apenas às cheias de 2020 e 2022 registradas nela. Réguas de afluentes e do reservatório da PCH foram retiradas por não terem parâmetro de análise.</p>
+ <div class="leg legrg"><span><span class="pbar mini"><i style="width:60%;background:#2e9e5b"></i></span>Barra: cota atual entre o rio baixo (0%) e a maior cheia registrada (100%); verde até 50%, laranja de 50% a 70%, vermelho de 70% a 90% e vinho acima de 90%</span><span><svg width="10" height="18"><rect x="4" y="0" width="2.5" height="18" fill="#6b7a84"/></svg>Cota da cheia de 2020 nessa régua</span><span><svg width="10" height="18"><rect x="4" y="0" width="2.5" height="18" fill="#111"/></svg>Cota da cheia de 2022 nessa régua</span></div>
  <div class="scroll"><table class="rg"><thead><tr><th>Estação</th><th>Cota e vazão agora</th><th>Variação 24 h</th><th>Parâmetro de análise</th><th>Cheia 2020</th><th>Cheia 2022</th><th>Maior registrada</th><th>Posição entre rio baixo e maior cheia</th></tr></thead><tbody id="tbRg"></tbody></table></div>
  <h3>Últimos 10 dias na mesma escala</h3>
  <p class="note">Cada régua é expressa em porcentagem da subida entre o rio baixo (0%, cota de estiagem da estação) e a maior cheia registrada pela telemetria (100%), para comparar estações com zeros diferentes. Uma onda de cheia aparece primeiro na régua de montante e chega depois a Belo Vale e Alberto Flores.</p>

@@ -115,25 +115,13 @@ function mapa(d, N) {
   $('leg').innerHTML = N.map((t, i) => `<span><i style="background:${HEX[i]}"></i>${esc(t)}</span>`).join('') + '<span><i class="sq"></i>Sede</span><span><svg width="12" height="18"><rect x="2" y="1" width="8" height="16" fill="#fff" stroke="#111" stroke-width="1.5"/></svg>Régua (Alberto Flores)</span><span><svg width="16" height="16"><rect x="4" y="4" width="8" height="8" fill="#fff" stroke="#111" stroke-width="1.5" transform="rotate(45 8 8)"/></svg>Medição de vazão (Belo Vale)</span><span><svg width="14" height="14"><circle cx="7" cy="7" r="4.5" fill="#2e7d4f" stroke="#14532d" stroke-width="1.5"/></svg>Pluviômetro em uso, transmitindo</span><span><svg width="14" height="14"><circle cx="7" cy="7" r="4.5" fill="#fff" stroke="#8a99a3" stroke-width="1.5"/></svg>Pluviômetro em uso, sem transmissão recente</span>';
 }
 
-// linha de tendência: reta de mínimos quadrados sobre as últimas `horas` de uma série [[t, v]], prolongada `proj` horas
-function tendencia(serie, horas, proj) {
-  const P = (serie || []).filter(p => p && p[1] != null).map(p => [Date.parse(String(p[0]).slice(0, 16) + ':00Z'), p[1]]).filter(p => Number.isFinite(p[0]));
-  if (P.length < 3) return null;
-  const fim = P[P.length - 1][0], ini = fim - horas * 36e5, W = P.filter(p => p[0] >= ini);
-  if (W.length < 3 || (fim - W[0][0]) < horas * 36e5 * 0.5) return null;
-  const n = W.length, mx = W.reduce((a, p) => a + p[0], 0) / n, my = W.reduce((a, p) => a + p[1], 0) / n;
-  const sxx = W.reduce((a, p) => a + (p[0] - mx) ** 2, 0); if (!sxx) return null;
-  const b = W.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / sxx, val = t => Math.max(0, my + b * (t - mx));
-  const iso = t => new Date(t).toISOString().slice(0, 16), t1 = fim + proj * 36e5;
-  return {x: [iso(W[0][0]), iso(fim), iso(t1)], y: [val(W[0][0]), val(fim), val(t1)], taxa_h: b * 36e5, fim: iso(fim), t1: iso(t1), vfim: val(t1)};
-}
-const trTrace = (T, nome, hov) => T ? [{type: 'scatter', mode: 'lines', x: T.x, y: T.y, name: nome, showlegend: false, line: {color: '#c0392b', width: 2, dash: 'dash'}, hovertemplate: hov + '<extra></extra>'}] : [];
-const trNota = (T, txt) => T ? [{x: T.t1, y: T.vfim, xref: 'x', yref: 'y', text: txt, showarrow: false, xanchor: 'right', yanchor: 'bottom', font: {size: 11, color: '#c0392b'}, bgcolor: 'rgba(255,255,255,.85)'}] : [];
+const {tendencia, trTraces} = C;
+const LEGB = () => ({orientation: 'h', x: 0, y: -0.12, yanchor: 'top', traceorder: 'normal', font: {size: 12}});
 
 function zonas(d, N) {
   const Z = d.zonas;
   $('zones').innerHTML = Object.keys(Z).map(z => { const v = Z[z];
-    const pl = v.pluviometros && v.pluviometros.length ? 'Pluviômetros ' + esc(v.pluviometros.join(', ')) : 'Sem pluviômetro telemétrico com dado; estimativa por modelo meteorológico';
+    const np = (v.pluviometros || []).length, pl = np ? `${np} pluviômetro${np === 1 ? '' : 's'} no cálculo (lista na aba Estações e leituras)` : 'Sem pluviômetro telemétrico com dado; estimativa por modelo meteorológico';
     return `<div class="card"><div class="ch"><b>${z} · ${esc(v.nome)}</b>${chip(v.nivel, N)}</div>
     <div class="note"><span class="src s-${esc(v.fonte)}">${esc(FONTE[v.fonte] || v.fonte)}</span> ${pl}. Em 5 dias: ${f((v.cob5_medida ?? 0) * 100, 0)}% das horas medidas, ${f((v.cob5_estimada ?? 0) * 100, 0)}% estimadas por modelo, cobertura espacial dos pluviômetros ${f((v.cob5_espacial ?? 0) * 100, 0)}%.${v.fim_acumulado ? ' Acumulado até ' + esc(hm(v.fim_acumulado)) + '.' : ''}${v.hora_parcial ? ` Hora em curso (parcial, medida): ${f(v.hora_parcial.mm, 1)} mm.` : ''}</div>
     <div class="gw">${gauge(v.P5, v.limites, v.nivel ?? -1)}<div class="gv">${f(v.P5, 0)}<small>mm em 5 dias</small></div></div>
@@ -146,11 +134,10 @@ function zonas(d, N) {
     plot('g' + z, [{type: 'bar', x: dd, y: om, name: 'Medida', marker: {color: '#1f6fb2'}, hovertemplate: '%{y:.1f} mm medida'},
       {type: 'bar', x: dd, y: oe, name: 'Estimada ou mista', marker: {color: '#5aa0d6', pattern: {shape: '/', fillmode: 'overlay', fgcolor: '#ffffff', fgopacity: 0.6, size: 6}}, hovertemplate: '%{y:.1f} mm estimada'},
       {type: 'bar', x: px, y: py, name: 'Prevista', marker: {color: '#c6dcef', line: {color: '#5aa0d6', width: 1}}, hovertemplate: '%{y:.1f} mm prevista'},
-      {type: 'scatter', mode: 'lines', x: xs, y: p5, name: 'Chuva de 5 dias', connectgaps: false, line: {color: '#111', width: 2}, hovertemplate: '%{y:.0f} mm'},
-      ...(() => { const hoje = dd.length ? dd[dd.length - 1] : null, T = hoje ? tendencia(xs.map((x, i) => [x + 'T12:00', p5[i]]).filter(p => p[0].slice(0, 10) <= hoje), 24 * 7, 72) : null;
-        if (T) T.x = T.x.map(t => t.slice(0, 10)), T.t1 = T.t1.slice(0, 10);
-        return T ? [{type: 'scatter', mode: 'lines', x: T.x, y: T.y, name: 'Tendência (7 dias)', line: {color: '#c0392b', width: 2, dash: 'dash'}, hovertemplate: `Tendência da chuva de 5 dias: ${T.taxa_h >= 0 ? '+' : ''}${f(T.taxa_h * 24, 1)} mm/dia<extra></extra>`}] : []; })()],
-      {...PL, showlegend: z === 'Z1', legend: {orientation: 'h', y: 1.18, font: {size: 10}}, barmode: 'stack', yaxis: {...PL.yaxis, title: {text: 'mm', font: {size: 11}}, range: [0, top]}, xaxis: {...PL.xaxis, type: 'date', tickformat: '%d/%m'}, bargap: .15,
+      ...(() => { const hoje = dd.length ? dd[dd.length - 1] : null; return [
+        {type: 'scatter', mode: 'lines', x: xs, y: p5.map((v, i) => xs[i] <= hoje ? v : null), name: 'Chuva de 5 dias medida', connectgaps: false, line: {color: '#111', width: 2}, hovertemplate: '%{y:.0f} mm em 5 dias'},
+        {type: 'scatter', mode: 'lines', x: xs, y: p5.map((v, i) => xs[i] >= hoje ? v : null), name: 'Chuva de 5 dias com a previsão', connectgaps: false, line: {color: '#111', width: 2, dash: 'dash'}, hovertemplate: '%{y:.0f} mm em 5 dias (com previsão)'}]; })()],
+      {...PL, showlegend: false, barmode: 'stack', yaxis: {...PL.yaxis, title: {text: 'mm', font: {size: 11}}, range: [0, top]}, xaxis: {...PL.xaxis, type: 'date', tickformat: '%d/%m'}, bargap: .15,
         shapes: [...hlines(lim), dd.length ? {type: 'line', x0: dd[dd.length - 1], x1: dd[dd.length - 1], yref: 'paper', y0: 0, y1: 1, line: {color: CINZA, width: 1, dash: 'dash'}} : null].filter(Boolean), annotations: hlabels(lim, N, 'mm')}, CFG,
       `Chuva de 5 dias em ${z}: ${f(v.P5, 0)} mm.`); }
 }
@@ -164,14 +151,14 @@ function regua(d, N, L) {
   else r += `<text x="100" y="${RH / 2}" font-size="13" fill="#555">Sem leitura</text>`;
   $('regua').setAttribute('viewBox', `0 0 200 ${RH}`); $('regua').innerHTML = r;
   const sA = gaps(af.serie, 2), ax = sA.map(p => p[0]), ay = sA.map(p => p[1]), vA = ay.filter(x => x != null), topA = FIT && vA.length ? Math.max(...vA) * 1.25 : Math.max(11.5, ...vA);
-  const TA = tendencia(af.serie, 6, 6), txA = TA ? `Tendência ${TA.taxa_h >= 0 ? '+' : ''}${f(TA.taxa_h * 100, 1)} cm/h` : '';
-  plot('gAF', [{type: 'scatter', mode: 'lines', x: ax, y: ay, connectgaps: false, line: {color: '#1f6fb2', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(31,111,178,.10)', hovertemplate: '%{y:.2f} m'}, ...trTrace(TA, 'Tendência', `${txA} (reta das últimas 6 h, projetada 6 h): %{y:.2f} m`)],
-    {...PL, yaxis: {...PL.yaxis, title: {text: 'Cota na régua (m)', font: {size: 11}}, range: [0, topA]}, xaxis: {...PL.xaxis, type: 'date', tickformat: ZOOM <= 72 ? '%d/%m %Hh' : '%d/%m', range: xr(af.serie, TA && TA.t1)}, shapes: [...bands(Lr, topA), ...hlines(Lr)], annotations: [...hlabels(Lr, N, 'm'), ...trNota(TA, txA)]}, CFG,
+  const TA = tendencia(af.serie, 6, 12), txA = TA ? `Tendência das últimas 6 h (${TA.taxa_h >= 0 ? '+' : ''}${f(TA.taxa_h * 100, 1)} cm/h), projetada 12 h` : '';
+  plot('gAF', [{type: 'scatter', mode: 'lines', x: ax, y: ay, connectgaps: false, name: 'Cota medida', line: {color: '#1f6fb2', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(31,111,178,.10)', hovertemplate: '%{y:.2f} m'}, ...trTraces(TA, txA, 'm', 2)],
+    {...PL, margin: {...PL.margin, b: 70}, showlegend: true, legend: LEGB(), yaxis: {...PL.yaxis, title: {text: 'Cota na régua (m)', font: {size: 11}}, range: [0, topA]}, xaxis: {...PL.xaxis, type: 'date', tickformat: ZOOM <= 72 ? '%d/%m %Hh' : '%d/%m', range: xr(af.serie, TA && TA.t1)}, shapes: [...bands(Lr, topA), ...hlines(Lr)], annotations: hlabels(Lr, N, 'm')}, CFG,
     `Última cota: ${f(af.h, 2)} m às ${hm(af.h_t || af.t)}.`);
   const bv = d.bv, sB = gaps(bv.serie, 2), bx = sB.map(p => p[0]), by = sB.map(p => p[1]), vB = by.filter(x => x != null), Lb = L.BV, topB = FIT && vB.length ? Math.max(...vB) * 1.25 : Math.max(Lb[3] * 1.15, ...vB);
-  const TB = tendencia(bv.serie, 6, 6), txB = TB ? `Tendência ${TB.taxa_h >= 0 ? '+' : ''}${f(TB.taxa_h, 1)} m³/s por hora` : '';
-  plot('gBV', [{type: 'scatter', mode: 'lines', x: bx, y: by, connectgaps: false, line: {color: '#1f6fb2', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(31,111,178,.10)', hovertemplate: '%{y:.0f} m³/s'}, ...trTrace(TB, 'Tendência', `${txB} (reta das últimas 6 h, projetada 6 h): %{y:.0f} m³/s`)],
-    {...PL, yaxis: {...PL.yaxis, title: {text: 'Vazão (m³/s)', font: {size: 11}}, range: [0, topB]}, xaxis: {...PL.xaxis, type: 'date', tickformat: ZOOM <= 72 ? '%d/%m %Hh' : '%d/%m', range: xr(bv.serie, TB && TB.t1)}, shapes: [...bands(Lb, topB), ...hlines(Lb)], annotations: [...hlabels(Lb, N, 'm³/s'), ...trNota(TB, txB)]}, CFG,
+  const TB = tendencia(bv.serie, 6, 12), txB = TB ? `Tendência das últimas 6 h (${TB.taxa_h >= 0 ? '+' : ''}${f(TB.taxa_h, 1)} m³/s por hora), projetada 12 h` : '';
+  plot('gBV', [{type: 'scatter', mode: 'lines', x: bx, y: by, connectgaps: false, name: 'Vazão medida', line: {color: '#1f6fb2', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(31,111,178,.10)', hovertemplate: '%{y:.0f} m³/s'}, ...trTraces(TB, txB, 'm³/s', 0)],
+    {...PL, margin: {...PL.margin, b: 70}, showlegend: true, legend: LEGB(), yaxis: {...PL.yaxis, title: {text: 'Vazão (m³/s)', font: {size: 11}}, range: [0, topB]}, xaxis: {...PL.xaxis, type: 'date', tickformat: ZOOM <= 72 ? '%d/%m %Hh' : '%d/%m', range: xr(bv.serie, TB && TB.t1)}, shapes: [...bands(Lb, topB), ...hlines(Lb)], annotations: hlabels(Lb, N, 'm³/s')}, CFG,
     `Última vazão: ${f(bv.q, 0)} m³/s às ${hm(bv.q_t || bv.t)}.`);
 }
 
@@ -191,7 +178,7 @@ function reguas(d) {
     return `<tr${ok ? '' : ' class="velho"'}><td><b>${esc(r.nome)}</b><br><small>${esc(r.rio)} · ${c} · ${r.zona}</small></td><td class="n">${u ? f(u[1], 2) + ' m' : 'sem dado'}<br><small>${u ? (ok ? 'às ' + hm(u[0]) : 'leitura de ' + dtf(u[0])) : ''}</small>${vq ? `<br><small>${f(vq.valor, 0)} m³/s às ${hm(vq.t)}</small>` : ''}</td>
      <td class="n">${v24 == null ? 'sem dado' : (v24 >= 0 ? '+' : '') + f(v24, 0) + ' cm'}</td><td><small>${esc(param(c))}</small></td><td class="n">${e20 ? f(e20.h, 2) + ' m' : 'sem dado'}</td><td class="n">${e22 ? f(e22.h, 2) + ' m' : 'sem dado'}</td>
      <td class="n">${f(r.max.h, 2)} m<br><small>${ddm(r.max.d)}/${r.max.d.slice(0, 4)} · registro desde ${r.inicio.slice(5)}/${r.inicio.slice(0, 4)}</small></td>
-     <td><div class="pbar"><i style="width:${Math.min(100, (pc || 0) * 100)}%;background:${cor}"></i>${e20 ? `<s style="left:${Math.min(100, rel(e20.h) * 100)}%" title="2020"></s>` : ''}${e22 ? `<s style="left:${Math.min(100, rel(e22.h) * 100)}%" title="2022"></s>` : ''}</div><small>${pc == null ? 'sem dado' : f(pc * 100, 0) + '% da subida até a maior cheia'}</small></td></tr>`; }).join('');
+     <td><div class="pbar"><i style="width:${Math.min(100, (pc || 0) * 100)}%;background:${cor}"></i>${e20 ? `<s class="m20" style="left:${Math.min(100, rel(e20.h) * 100)}%" title="Cheia de 2020: ${f(e20.h, 2)} m"></s>` : ''}${e22 ? `<s class="m22" style="left:${Math.min(100, rel(e22.h) * 100)}%" title="Cheia de 2022: ${f(e22.h, 2)} m"></s>` : ''}</div><small>${pc == null ? 'sem dado' : f(pc * 100, 0) + '% da subida até a maior cheia'}</small></td></tr>`; }).join('');
   const tr = cods.map(c => { const g = gaps(d.reguas[c], 2); return {type: 'scatter', mode: 'lines', name: `${RG[c].nome} (${RG[c].zona})`, x: g.map(p => p[0]), y: g.map(p => p[1] == null ? null : (p[1] - RG[c].base) / (RG[c].max.h - RG[c].base) * 100), connectgaps: false,
     line: {color: RGC[c], width: 2.2}, hovertemplate: `${esc(RG[c].nome)}: %{y:.0f}%<extra></extra>`}; });
   plot('gRg', tr, {...PL, hovermode: 'x unified', showlegend: true, legend: {orientation: 'h', y: -0.2}, yaxis: {...PL.yaxis, title: {text: '% da subida até a maior cheia', font: {size: 11}}, range: [-5, 110]}, xaxis: {...PL.xaxis, type: 'date', tickformat: '%d/%m'},

@@ -6,7 +6,6 @@
 const {HEX, TXT, CINZA, esc, f, dtf, hm, idh, PL, CFG, plot} = C;
 const N = ['Normal', 'Atenção', 'Alerta', 'Alerta máximo', 'Emergência'];
 const SIT = ['Sem risco de inundação', 'Água na planície e nas áreas baixas da beira-rio', 'Edificações da beira-rio atingidas', 'Centro alagado (referência 2012)', 'Nível de 2022 ou superior'];
-const EVC = ['#7b8a94', '#5f7d95', '#8f6b9a', '#9a8a5a', '#8e1537', '#d93a26', '#f08a24', '#4d9a8a', '#1f6fb2'];
 const ZS = ['Z1', 'Z2', 'Z3'], $ = id => document.getElementById(id);
 let D = null, BASE = null, H = null, MODO = 'atual', CEN = null, busy = false, falha = null, pendente = false;
 const nivel = (v, l) => l.reduce((k, t, i) => v != null && v >= t ? i + 1 : k, 0);
@@ -79,27 +78,32 @@ function sim() {
   if (Q90 > H.curva.Q[H.curva.Q.length - 1]) av.push('vazão além do fim da curva da régua: cota extrapolada linearmente');
   $('rNote').textContent = (av.length ? 'Atenção ao domínio do modelo: ' + av.join('; ') + '. ' : '') + 'P50 é o valor central; P10 e P90 delimitam o intervalo de 80% do modelo (erro padrão de 0,29 em ln Q), e não uma probabilidade calibrada de inundação. O simulador não substitui o acompanhamento da régua e de Belo Vale.';
   regua(h, h10, h90, n, Q90 > Qobs); bvbar(Qbv, Qbv10, Qbv90, Lbv);
-  const ev = [...H.eventos].sort((a, b) => a.cota - b.cota), xs = [...ev.map(e => e.rot), 'Simulado'], ys = [...ev.map(e => e.cota), h];
-  plot('gCmp', [{type: 'bar', x: xs, y: ys, marker: {color: ys.map((v, i) => i === ys.length - 1 ? '#111' : HEX[nivel(v, D.limites.AF)])}, text: ys.map(v => f(v, 2) + ' m'), textposition: 'outside', hovertemplate: '%{x}: %{y:.2f} m<extra></extra>',
-    error_y: {type: 'data', symmetric: false, array: [...ev.map(() => 0), h90 - h], arrayminus: [...ev.map(() => 0), h - h10], color: '#555', visible: true}}],
-    {...PL, margin: {...PL.margin, b: 60}, xaxis: {...PL.xaxis, type: 'category', tickangle: C.estreito() ? -60 : 0}, yaxis: {...PL.yaxis, title: {text: 'Cota máxima na régua (m)', font: {size: 11}}, range: [0, Math.max(13, h90 + 1)]}, ...lines(D.limites.AF, 'm'), showlegend: false}, CFG, `Cota simulada ${f(h, 2)} m.`);
+  const ev = [...H.eventos].sort((a, b) => a.cota - b.cota), xs = [...ev.map(e => e.rot), 'Simulado'], ix = xs.map((_, i) => i), ns = ev.length, est = C.estreito();
+  plot('gCmp', [
+    {type: 'bar', x: ix.slice(0, ns), y: ev.map(e => e.cota), name: 'Cota máxima de cada enchente registrada (cor do nível atingido)', marker: {color: ev.map(e => HEX[nivel(e.cota, D.limites.AF)])}, text: ev.map(e => f(e.cota, 2) + ' m'), textposition: 'outside', cliponaxis: false, hovertemplate: '%{customdata}: %{y:.2f} m<extra></extra>', customdata: ev.map(e => e.rot)},
+    {type: 'scatter', mode: 'lines', x: [ns - 0.4, ns + 0.4, ns + 0.4, ns - 0.4, ns - 0.4], y: [h10, h10, h90, h90, h10], fill: 'toself', fillcolor: 'rgba(31,111,178,.25)', line: {width: 0}, name: 'Faixa provável do cenário simulado (P10 a P90)', hovertemplate: `P10 a P90: ${f(h10, 2)} a ${f(h90, 2)} m<extra></extra>`},
+    {type: 'bar', x: [ns], y: [h], name: 'Cota simulada (P50)', marker: {color: '#1f5fbf'}, width: [0.5], text: [f(h, 2) + ' m'], textposition: 'outside', cliponaxis: false, hovertemplate: `Simulado: ${f(h, 2)} m<extra></extra>`}],
+    {...PL, margin: {...PL.margin, b: est ? 150 : 110}, barmode: 'overlay', xaxis: {...PL.xaxis, tickmode: 'array', tickvals: ix, ticktext: xs, tickangle: est ? -60 : 0, range: [-0.6, ns + 0.6]}, yaxis: {...PL.yaxis, title: {text: 'Cota máxima na régua (m)', font: {size: 11}}, range: [0, Math.max(13, h90 + 1)]}, ...lines(D.limites.AF, 'm'), showlegend: true, legend: {orientation: 'h', x: 0, y: est ? -0.35 : -0.14, yanchor: 'top', font: {size: 12}}}, CFG, `Cota simulada ${f(h, 2)} m.`);
 }
 
 // régua simulada com escala dinâmica: nenhuma cota é truncada; acima da maior cheia observada a faixa é marcada como extrapolação
 function regua(h, h10, h90, n, extrap) {
-  const L = D.limites.AF, top = Math.max(13, Math.ceil(h90 + 1)), H0 = 300, W = 330, y = v => 20 + (1 - v / top) * H0, x0 = 118, w = 46;
+  const L = D.limites.AF, top = Math.max(13, Math.ceil(h90 + 1)), H0 = 300, W = 230, y = v => 20 + (1 - v / top) * H0, x0 = 70, w = 46;
   const bands = [0, ...L, top].map((v, i, a) => i < a.length - 1 ? `<rect x="${x0}" y="${y(a[i + 1])}" width="${w}" height="${y(v) - y(a[i + 1])}" fill="${HEX[i]}" opacity=".85"/>` : '').join('');
-  const passo = top > 20 ? 2 : 1; let ticks = ''; for (let v = 0; v <= top; v += passo) ticks += `<line x1="${x0 + w}" x2="${x0 + w + (v % 2 ? 6 : 10)}" y1="${y(v)}" y2="${y(v)}" stroke="#111"/><text x="${x0 + w + 14}" y="${y(v) + 4}" font-size="11" fill="#333">${v}</text>`;
-  const lim = L.map((v, i) => `<text x="${x0 - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#111">${N[i + 1]} ${f(v, 1)}</text>`).join('');
-  const ext = extrap ? `<rect x="${x0 - 4}" y="${y(top)}" width="${w + 8}" height="${y(11.75) - y(top)}" fill="url(#hx)" opacity=".5"/><text x="${x0 - 6}" y="${y(11.75) - 4}" text-anchor="end" font-size="10" fill="#8e1537">extrapolação</text>` : '';
-  const wl = `<rect x="${x0 - 4}" y="${y(h90)}" width="${w + 8}" height="${Math.max(2, y(h10) - y(h90))}" fill="#1f6fb2" opacity=".25"/><line x1="${x0 - 12}" x2="${x0 + w + 12}" y1="${y(h)}" y2="${y(h)}" stroke="#111" stroke-width="3"/><polygon points="${x0 + w + 12},${y(h)} ${x0 + w + 22},${y(h) - 6} ${x0 + w + 22},${y(h) + 6}" fill="#111"/>`;
-  $('rSvg').innerHTML = `<svg viewBox="0 0 ${W} ${H0 + 40}" style="width:100%;max-width:340px;display:block;margin:auto" role="img" aria-label="Régua simulada com cota ${f(h, 2)} metros"><defs><pattern id="hx" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#8e1537" stroke-width="2"/></pattern></defs>${bands}${ext}${ticks}${lim}${wl}<text x="${x0 + w + 28}" y="${Math.max(14, y(h) - 8)}" font-size="16" font-weight="700" fill="#111">${f(h, 2)} m</text><text x="${x0 + w + 28}" y="${Math.max(28, y(h) + 10)}" font-size="11" fill="#333">P10 a P90: ${f(h10, 1)} a ${f(h90, 1)} m</text></svg><p class="note" style="text-align:center">${N[n]} na sede. Faixa azul: P10 a P90 (intervalo de 80%). Cota simulada, não é medição.</p>`;
+  const passo = top > 20 ? 2 : 1; let ticks = ''; for (let v = 0; v <= top; v += passo) ticks += `<line x1="${x0 + w}" x2="${x0 + w + (v % 2 ? 5 : 8)}" y1="${y(v)}" y2="${y(v)}" stroke="#555"/><text x="${x0 - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#555">${v}</text>`;
+  const ext = extrap ? `<rect x="${x0 - 4}" y="${y(top)}" width="${w + 8}" height="${y(11.75) - y(top)}" fill="url(#hx)" opacity=".5"/>` : '';
+  const wl = `<rect x="${x0 - 4}" y="${y(h90)}" width="${w + 8}" height="${Math.max(2, y(h10) - y(h90))}" fill="#1f6fb2" opacity=".35"/><line x1="${x0 - 8}" x2="${x0 + w + 8}" y1="${y(h)}" y2="${y(h)}" stroke="#111" stroke-width="1.5"/><polygon points="${x0 + w + 9},${y(h)} ${x0 + w + 16},${y(h) - 4} ${x0 + w + 16},${y(h) + 4}" fill="#111"/>`;
+  const faixas = [0, ...L, null].slice(0, 5).map((v, i) => `<span><i style="background:${HEX[i]}"></i>${N[i]} ${i < 4 ? `(${f(v, 1)} a ${f(L[i], 1)} m)` : `(acima de ${f(L[3], 1)} m)`}</span>`).join('');
+  $('rSvg').innerHTML = `<svg viewBox="0 0 ${W} ${H0 + 40}" style="width:100%;max-width:260px;display:block;margin:auto" role="img" aria-label="Régua simulada com cota ${f(h, 2)} metros"><defs><pattern id="hx" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#8e1537" stroke-width="2"/></pattern></defs>${bands}${ext}${ticks}${wl}<text x="${x0 + w + 20}" y="${y(h) + 5}" font-size="15" font-weight="700" fill="#111">${f(h, 2)} m</text></svg>
+    <div class="leg legsim"><span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" stroke="#111" stroke-width="1.5"/></svg>Cota simulada (P50), não é medição</span><span><i style="background:#1f6fb2;opacity:.45"></i>Faixa provável, P10 a P90 (intervalo de 80%)</span>${faixas}${extrap ? '<span><i class="hach2"></i>Acima da maior cheia observada: extrapolação</span>' : ''}</div>`;
 }
 function bvbar(q, q10, q90, l) {
   const L = D.limites.BV, mx = Math.max(1400, q90 * 1.1), e = C.estreito();
-  plot('bvSim', [{type: 'bar', x: ['Belo Vale'], y: [q], marker: {color: HEX[l]}, width: [0.45], text: [`${f(q, 0)} m³/s`], textposition: 'inside', insidetextanchor: 'middle', textfont: {size: 14, color: TXT[l]},
-    error_y: {type: 'data', symmetric: false, array: [q90 - q], arrayminus: [q - q10], color: '#555'}, hovertemplate: '%{y:.0f} m³/s<extra></extra>'}],
-    {...PL, margin: {l: 56, r: e ? 96 : 150, t: 10, b: 30}, yaxis: {...PL.yaxis, title: {text: 'Vazão de pico (m³/s)', font: {size: 11}}, range: [0, mx]}, shapes: lines(L, '').shapes, annotations: L.map((v, i) => ({xref: 'paper', x: 1.02, y: v, xanchor: 'left', yanchor: 'middle', text: `${N[i + 1]} ${f(v, 0)}`, showarrow: false, font: {size: e ? 10 : 11, color: '#111'}})), showlegend: false}, CFG,
+  plot('bvSim', [
+    {type: 'bar', x: [0], y: [q], name: `Vazão de pico simulada (P50): ${f(q, 0)} m³/s`, marker: {color: HEX[l]}, width: [0.5], hovertemplate: `P50: ${f(q, 0)} m³/s<extra></extra>`},
+    {type: 'scatter', mode: 'lines', x: [-0.4, 0.4, 0.4, -0.4, -0.4], y: [q10, q10, q90, q90, q10], fill: 'toself', fillcolor: 'rgba(31,111,178,.28)', line: {width: 0}, name: `Faixa provável (P10 a P90): ${f(q10, 0)} a ${f(q90, 0)} m³/s`, hovertemplate: `P10 a P90: ${f(q10, 0)} a ${f(q90, 0)} m³/s<extra></extra>`}],
+    {...PL, hovermode: 'closest', margin: {l: 56, r: e ? 96 : 120, t: 10, b: 90}, xaxis: {...PL.xaxis, range: [-0.8, 0.8], tickvals: [0], ticktext: ['Belo Vale']}, yaxis: {...PL.yaxis, title: {text: 'Vazão de pico (m³/s)', font: {size: 11}}, range: [0, mx]}, shapes: lines(L, '').shapes,
+      annotations: L.map((v, i) => ({xref: 'paper', x: 1.02, y: v, xanchor: 'left', yanchor: 'middle', text: `${N[i + 1]} ${f(v, 0)}`, showarrow: false, font: {size: e ? 10 : 11, color: '#111'}})), showlegend: true, legend: {orientation: 'h', x: 0, y: -0.12, yanchor: 'top', font: {size: 12}}}, CFG,
     `Vazão simulada em Belo Vale ${f(q, 0)} m³/s.`);
 }
 
@@ -120,23 +124,26 @@ function preset(p) {
 }
 
 function trend() {
-  const s = D.af.serie || [], L = D.limites.AF;
-  if (!s.length || D.af.h == null) { $('tG').innerHTML = '<div>Sem série da régua disponível</div>'; plot('gTr', [], PL, CFG, 'Sem dados.'); return; }
-  const tref = C.ms(D.af.h_t || D.af.t);
-  const pts = s.map(([t, v]) => [(C.ms(t) - tref) / 36e5, v]).filter(p => p[0] >= -240 && p[1] != null);
-  const rec = pts.filter(p => p[0] >= -6), k = rec.length > 1 && rec[rec.length - 1][0] > rec[0][0] ? (rec[rec.length - 1][1] - rec[0][1]) / (rec[rec.length - 1][0] - rec[0][0]) : null, h0 = D.af.h;
-  const eta = L.map(t => t <= h0 ? 'atingido' : k != null && k > 0.002 ? `${f((t - h0) / k, 0)} h` : k == null ? 'sem taxa' : 'não atinge na taxa atual');
-  $('tG').innerHTML = [`Taxa nas últimas 6 h<b>${k == null ? 'sem dado' : (k >= 0 ? '+' : '') + f(k * 100, 1) + ' cm/h'}</b>${esc(idh(C.idade(D.af.h_t || D.af.t)))}`, ...L.map((t, i) => `${N[i + 1]} (${f(t, 1)} m)<b>${eta[i]}</b>`)].map(x => `<div>${x}</div>`).join('');
-  const top = Math.max(11.5, h0 + 2), tr = [{x: pts.map(p => p[0]), y: pts.map(p => p[1]), mode: 'lines', line: {color: '#1f6fb2', width: 2}, name: 'Régua', hovertemplate: '%{x:.0f} h: %{y:.2f} m<extra></extra>'}];
-  if (k != null) tr.push({x: [0, 24], y: [h0, h0 + k * 24], mode: 'lines', line: {color: '#111', width: 2, dash: 'dash'}, name: 'Projeção linear 24 h', hovertemplate: '+%{x:.0f} h: %{y:.2f} m<extra></extra>'});
-  plot('gTr', tr, {...PL, xaxis: {...PL.xaxis, title: {text: 'Horas em relação à última leitura', font: {size: 11}}}, yaxis: {...PL.yaxis, title: {text: 'Cota (m)', font: {size: 11}}, range: [0, top]}, ...lines(L, 'm'), showlegend: true, legend: {orientation: 'h', y: 1.08}}, CFG, `Cota atual ${f(h0, 2)} m.`);
-}
-function evs() {
-  const sh = +$('sh').value; $('oSh').textContent = sh === 1 ? '1 dia' : `${sh} dias`;
-  const tref = C.ms(D.af.h_t || D.af.t), cur = (D.af.serie || []).map(([t, v]) => [(C.ms(t) - tref) / 864e5 - sh, v]).filter(p => p[0] >= -10 - sh && p[1] != null);
-  const tr = H.eventos.map((e, i) => ({x: e.serie.map(r => r[0]), y: e.serie.map(r => r[1]), mode: 'lines+markers', name: e.rot, line: {color: EVC[i], width: 1.6}, marker: {size: 4}, hovertemplate: `${e.rot}, dia %{x}: %{y:.2f} m<extra></extra>`}));
-  tr.push({x: cur.map(p => p[0]), y: cur.map(p => p[1]), mode: 'lines', name: 'Atual', line: {color: '#111', width: 3}, hovertemplate: 'Atual: %{y:.2f} m<extra></extra>'});
-  plot('gEv', tr, {...PL, xaxis: {...PL.xaxis, title: {text: 'Dias em relação ao pico', font: {size: 11}}, range: [-10, 4]}, yaxis: {...PL.yaxis, title: {text: 'Cota (m)', font: {size: 11}}, range: [0, 12.5]}, ...lines(D.limites.AF, 'm'), showlegend: true, legend: {orientation: 'h', y: -0.18}}, CFG, 'Comparação com as enchentes.');
+  const s = D.af.serie || [], L = D.limites.AF, h0 = D.af.h;
+  if (!s.length || h0 == null) { $('tG').innerHTML = '<div>Sem série da régua disponível</div>'; plot('gTr', [], PL, CFG, 'Sem dados.'); return; }
+  const T = C.tendencia(s, 6, 12), u = s[s.length - 1], t0 = C.ms(u[0]), ant = h => { let b = null; for (const p of s) if (C.ms(p[0]) <= t0 - h * 36e5 && p[1] != null) b = p; return b && t0 - C.ms(b[0]) <= (h + 2) * 36e5 ? b[1] : null; };
+  const v6 = ant(6), v24 = ant(24), d6 = v6 == null ? null : (h0 - v6) * 100, d24 = v24 == null ? null : (h0 - v24) * 100;
+  const sub = H.eventos.map(e => { const a = e.serie.find(r => r[0] === -1), b = e.serie.find(r => r[0] === 0); return a && b ? b[1] - a[1] : null; }).filter(v => v != null).sort((a, b) => a - b);
+  const med = sub[Math.floor(sub.length / 2)], prox = L.findIndex(t => t > h0);
+  let alvo = 'Todos os níveis já atingidos';
+  if (prox >= 0 && T) { const k = T.hi.findIndex(v => v >= L[prox]), kc = T.c.findIndex(v => v >= L[prox]);
+    alvo = kc > 0 ? `Atinge ${N[prox + 1]} em cerca de ${kc} h` : k > 0 ? `Pode atingir ${N[prox + 1]} em ${k} h ou mais` : `Não atinge ${N[prox + 1]} (${f(L[prox], 1)} m) em 12 h`; }
+  const sg = v => v == null ? 'sem dado' : (v >= 0 ? '+' : '') + f(v, 0) + ' cm';
+  $('tG').innerHTML = [
+    `Cota agora<b>${f(h0, 2)} m</b>${esc('medida ' + idh(C.idade(D.af.h_t || D.af.t)))}`,
+    `Variação em 6 h<b>${sg(d6)}</b>${T ? esc(`ritmo de ${T.taxa_h >= 0 ? '+' : ''}${f(T.taxa_h * 100, 1)} cm/h`) : ''}`,
+    `Variação em 24 h<b>${sg(d24)}</b>${esc(`nas enchentes, o último dia antes do pico subiu de ${f(sub[0], 1)} a ${f(sub[sub.length - 1], 1)} m (mediana ${f(med, 1)} m)`)}`,
+    `Projeção para 12 h<b>${T ? f(T.c[12], 2) + ' m' : 'sem dado'}</b>${T ? esc(`${alvo}; faixa provável de ${f(T.lo[12], 2)} a ${f(T.hi[12], 2)} m`) : ''}`].map(x => `<div>${x}</div>`).join('');
+  const ini = new Date(t0 - 72 * 36e5 - 3 * 36e5).toISOString().slice(0, 16), sr = s.filter(p => p[0] >= ini), fim = T ? T.t1 : u[0], top = Math.max(L[0] + 1, ...sr.map(p => p[1] ?? 0), ...(T ? T.hi : [])) * 1.08, e = C.estreito();
+  plot('gTr', [{type: 'scatter', mode: 'lines', x: sr.map(p => p[0]), y: sr.map(p => p[1]), name: 'Cota medida (últimos 3 dias)', line: {color: '#1f6fb2', width: 2}, hovertemplate: '%{y:.2f} m<extra></extra>'},
+    ...C.trTraces(T, 'Projeção pela tendência das últimas 6 h', 'm', 2)],
+    {...PL, margin: {...PL.margin, b: e ? 120 : 90}, hovermode: 'x unified', xaxis: {...PL.xaxis, type: 'date', tickformat: '%d/%m %Hh', range: [ini, fim], nticks: e ? 4 : 8},
+      yaxis: {...PL.yaxis, title: {text: 'Cota na régua (m)', font: {size: 11}}, range: [0, top]}, ...lines(L.filter(t => t <= top), 'm'), showlegend: true, legend: {orientation: 'h', x: 0, y: -0.14, yanchor: 'top', traceorder: 'normal', font: {size: 12}}}, CFG, `Cota atual ${f(h0, 2)} m.`);
 }
 function chuva() {
   const cats = ['Atual', ...H.eventos.map(e => e.rot)];
@@ -158,7 +165,7 @@ function aplicar(novo, primeira) {
   if (primeira) { preset('atual'); }
   else if (MODO === 'atual' || MODO === 'zero') preset(MODO);
   else { if (mudou) pendente = true; modo(); sim(); }
-  trend(); evs(); chuva();
+  trend(); chuva();
 }
 async function load(primeira) {
   if (busy) return; busy = true;
@@ -175,7 +182,6 @@ async function load(primeira) {
   for (const z of ZS) { par('a' + z, 'r' + z); $('o' + z + 'm').addEventListener('input', () => { manual(); sim(); }); }
   par('qb', 'rqb');
   for (const id of ['qo', 'p30', 'obs']) $(id).addEventListener('input', () => { manual(); sim(); });
-  $('sh').addEventListener('input', evs);
   $('btnRec').addEventListener('click', () => { preset('atual'); load(false); });
   await load(true);
   setInterval(() => load(false), 5 * 60e3);
