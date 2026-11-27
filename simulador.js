@@ -169,7 +169,7 @@ function aplicar(novo, primeira) {
 }
 async function load(primeira) {
   if (busy) return; busy = true;
-  try { BASE = await C.json('data.json'); falha = null; aplicar(AoVivo.reavaliar(BASE, BASE), primeira && !D); }
+  try { BASE = await C.snapshot(); falha = null; aplicar(AoVivo.reavaliar(BASE, BASE), primeira && !D); }
   catch (e) { falha = e.message; if (D) status(); else { $('warn').hidden = false; $('warn').textContent = `Não foi possível carregar os dados (${e.message}).`; $('upd').textContent = 'Sem dados'; } busy = false; return; }
   busy = false;
   // telemetria ao vivo em segundo plano: a página já está utilizável com o snapshot
