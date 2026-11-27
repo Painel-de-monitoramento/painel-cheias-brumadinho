@@ -42,6 +42,7 @@ function tempos(d) {
   return it.map(x => `<span>${esc(x)}</span>`).join('');
 }
 
+const quando = t => { const h = idade(t); if (!t || h == null) return 'sem horário'; return `${h > 20 ? dtf(t) : 'às ' + hm(t)} (há ${h < 1 ? Math.max(0, Math.round(h * 60)) + ' min' : f(h, 1).replace(',0', '') + ' h'})`; };
 function render(d) {
   const N = d.niveis_nomes, L = d.limites, st = d.nivel.status || 'valido', n0 = d.nivel.atual, Q = d.qualidade || {};
   const col = d.coleta || d.atualizado, age = idade(col), viv = d.ao_vivo && d.ao_vivo.ok;
@@ -50,7 +51,7 @@ function render(d) {
   $('tempos').innerHTML = tempos(d);
   const velho = age == null || age > 1; $('dot').className = 'dot' + ((velho && !viv) || ultimaFalha ? ' old' : '');
   const msg = [];
-  if (velho) msg.push(`A última coleta publicada pelo servidor tem ${f(age, 1)} horas${viv ? '; os valores abaixo foram atualizados diretamente da telemetria neste navegador' : ''}. A rotina automática de atualização pode estar atrasada.`);
+  if (velho) msg.push(`A coleta automática do servidor não roda desde ${dtf(col)} (há ${f(age, 1)} h). ${viv ? 'A régua, a vazão de Belo Vale e a chuva estimada abaixo foram lidas agora, diretamente da ANA e do modelo, neste navegador' : 'Os valores abaixo são dessa coleta'}${d.cemaden && d.cemaden.configurado ? '; os pluviômetros do CEMADEN só são lidos pelo servidor e continuam com os dados dessa hora' : ''}.`);
   if (OP && OP.resultado !== 'ok' && OP.falhas_consecutivas) msg.push(`As últimas ${OP.falhas_consecutivas} tentativas de coleta do servidor não foram completas (${OP.mensagem}).`);
   if (st === 'indeterminado') msg.push(n0 ? `Dados insuficientes para recalcular o nível; mantido ${N[n0]}, o último nível registrado. Consulte diretamente a régua e a Defesa Civil.` : 'Nível indeterminado: não há leitura válida suficiente (régua, Belo Vale e duas zonas de chuva completas) para afirmar a condição atual. Consulte diretamente a régua e a Defesa Civil.');
   $('warn').hidden = !msg.length; $('warn').textContent = msg.join(' ');
@@ -71,9 +72,9 @@ function render(d) {
   document.querySelectorAll('#steps li').forEach((li, i) => { li.className = n != null && i === n ? 'cur' : n != null && i < n ? 'past' : ''; li.style.setProperty('--c', HEX[i]); });
   const af = d.af, bv = d.bv, Z = d.zonas;
   $('kAF').textContent = af.h == null ? 'sem dado' : `${f(af.h, 2)} m`; $('kAF').className = Q.nivel?.estado === 'indisponivel' ? 'old' : '';
-  $('kAFt').innerHTML = `${af.tendencia_cm_h == null ? '' : esc(`${af.tendencia_cm_h > 0.5 ? 'Subindo' : af.tendencia_cm_h < -0.5 ? 'Descendo' : 'Estável'} ${f(Math.abs(af.tendencia_cm_h), 1)} cm/h · `)}${esc(dtf(af.h_t || af.t))} ${selo(Q.nivel?.frescor)}`;
+  $('kAFt').innerHTML = `${af.tendencia_cm_h == null ? '' : esc(`${af.tendencia_cm_h > 0.5 ? 'Subindo' : af.tendencia_cm_h < -0.5 ? 'Descendo' : 'Estável'} ${f(Math.abs(af.tendencia_cm_h), 1)} cm/h · `)}${esc('medida ' + quando(af.h_t || af.t))} ${selo(Q.nivel?.frescor)}`;
   $('kBV').textContent = bv.q == null ? 'sem dado' : `${f(bv.q, 0)} m³/s`; $('kBV').className = Q.vazao?.estado === 'indisponivel' ? 'old' : '';
-  $('kBVt').innerHTML = `${esc(`Atenção em ${f(L.BV[0])} m³/s · ${dtf(bv.q_t || bv.t)}`)} ${selo(Q.vazao?.frescor)}`;
+  $('kBVt').innerHTML = `${esc(`Atenção em ${f(L.BV[0])} m³/s · medida ${quando(bv.q_t || bv.t)}`)} ${selo(Q.vazao?.frescor)}`;
   const zv = Object.keys(Z).filter(z => C.ok(Z[z].P5));
   if (zv.length) { const zmax = zv.reduce((a, b) => Z[b].P5 > Z[a].P5 ? b : a);
     $('kP5').textContent = `${f(Z[zmax].P5, 0)} mm`;
@@ -102,7 +103,7 @@ function mapa(d, N) {
   const est = c => (d.estacoes || []).find(e => e.cod === c);
   // pluviômetros que entram no cálculo da chuva das zonas
   const usados = [...new Set(Object.values(Z).flatMap(z => z.pluviometros || []))];
-  for (const c of usados) { if (c === '40740000' || c === '40710001' || !POS[c]) continue; const [x, y, nm] = POS[c], e = est(c), fr = e?.variaveis?.chuva?.frescor, vivo = fr === 'atualizado' || fr === 'atrasado';
+  for (const c of usados) { if (c === '40740000' || c === '40710001' || !(POS[c] || est(c)?.mapa)) continue; const e = est(c), [x, y, nm] = POS[c] || [...e.mapa, e.nome + (e.rede === 'CEMADEN' ? ', CEMADEN' : '')], fr = e?.variaveis?.chuva?.frescor, vivo = fr === 'atualizado' || fr === 'atrasado';
     s += `<circle cx="${x}" cy="${y}" r="5" fill="${vivo ? '#2e7d4f' : '#fff'}" stroke="${vivo ? '#14532d' : CINZA}" stroke-width="1.8"><title>${esc(nm)} (${c}) · pluviômetro usado na chuva da zona · ${esc(C.FRESCOR[fr] || 'sem dado')}</title></circle>`; }
   { const [x, y] = POS['40740000'], fr = d.qualidade?.nivel?.frescor, nv = d.af.nivel, h = d.af.h, hh = C.ok(h) ? Math.min(26, Math.max(2, h / 13 * 26)) : 0;
     s += `<g><title>Régua de Alberto Flores (40740000) · cota ${f(h, 2)} m · ${esc(C.FRESCOR[fr] || 'sem dado')}</title><rect x="${x - 4}" y="${y - 14}" width="8" height="26" fill="#fff" stroke="#111" stroke-width="1.6"/>${[0, 1, 2, 3, 4].map(i => `<line x1="${x - 4}" x2="${x + (i % 2 ? 0 : 3)}" y1="${y - 10 + i * 5}" y2="${y - 10 + i * 5}" stroke="#111" stroke-width="1.2"/>`).join('')}${hh ? `<rect x="${x - 4}" y="${y + 12 - hh}" width="8" height="${hh}" fill="${nv == null ? CINZA : HEX[nv]}" opacity=".85"/>` : ''}</g><text x="${x + 9}" y="${y + 2}" class="ml">Régua · Alberto Flores</text>`; }
