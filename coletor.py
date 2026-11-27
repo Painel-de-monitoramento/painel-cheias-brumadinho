@@ -10,8 +10,8 @@
 import re, sys, os, json, time, hashlib, urllib.request, datetime as dt
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-import motor
-from dados import hr, hora_openmeteo, hora_metno, futuro, num, cadencia_min, chuva_horaria, janela, cobertura, frescor
+import motor, cemaden
+from dados import hr, hora_openmeteo, hora_metno, futuro, num, cadencia_min, chuva_horaria, chuva_horaria_variavel, janela, cobertura, frescor
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 TZ = dt.timezone(dt.timedelta(hours=-3))
@@ -122,6 +122,18 @@ chuva_h, chuva_n, chuva_esp = {}, {}, {}   # chuva horária por estação (hora 
 for cod, rows in tel.items():
     chuva_h[cod], chuva_n[cod], chuva_esp[cod] = chuva_horaria([(r[0], r[3]) for r in rows], horas)
 
+# ---------- pluviômetros automáticos do CEMADEN na Z1 (só com os segredos CEMADEN_USUARIO e CEMADEN_SENHA)
+CCACHE = os.path.join(BASE, 'cemaden_cache.json')
+cem_cache, CEM_SIT = cemaden.atualizar(ler(CCACHE, {}), NOW, log)
+if CEM_SIT['configurado']: escrever(CCACHE, cem_cache)
+CEM = {}   # código -> metadados; os registros entram na chuva horária como as estações da ANA
+for cod, m in cem_cache.get('estacoes', {}).items():
+    regs = [(dt.datetime.fromisoformat(k), v) for k, v in cem_cache.get('registros', {}).get(cod, {}).items()]
+    regs = [r for r in regs if not futuro(r[0], NOW)]
+    if not regs: continue
+    CEM[cod] = {**m, 'ultimo': max(r[0] for r in regs)}
+    chuva_h[cod], chuva_n[cod] = chuva_horaria_variavel(regs, horas); chuva_esp[cod] = 1
+
 # ---------- modelo (Open-Meteo, reserva met.no + histórico próprio), chave horária no início do intervalo
 pts = [(z, p) for z in GRADE for p in GRADE[z]]
 u = ('https://api.open-meteo.com/v1/forecast?latitude=' + ','.join(str(p[0]) for _, p in pts) +
@@ -187,7 +199,7 @@ escrever(HIST, {**{z: {k: v for k, v in hist.get(z, {}).items() if k >= lim_hist
 
 # ---------- chuva por zona: média dos pluviômetros com hora medida; sem medição, estimativa do modelo
 def zona_obs(z):
-    cods = [c for c, _, zz, _ in EST if zz == z]
+    cods = [c for c, _, zz, _ in EST if zz == z] + sorted(c for c, m in CEM.items() if m['zona'] == z)
     usados = [c for c in cods if sum(v is not None for v in chuva_h.get(c, {}).values()) > 72]
     serie, fonte, peso = {}, {}, {}
     for h in horas:
@@ -199,7 +211,10 @@ def zona_obs(z):
     # hora em curso: somente medição parcial, apresentada à parte e fora dos acumulados
     parc = []
     for c in usados:
-        p = [r[3] for r in tel[c] if r[3] is not None and 0 <= r[3] < 200 and hr(r[0] - dt.timedelta(seconds=1)) == H_ATUAL]
+        if c in CEM:
+            p = [v for k, v in cem_cache['registros'].get(c, {}).items() if hr(dt.datetime.fromisoformat(k) - dt.timedelta(seconds=1)) == H_ATUAL]
+        else:
+            p = [r[3] for r in tel[c] if r[3] is not None and 0 <= r[3] < 200 and hr(r[0] - dt.timedelta(seconds=1)) == H_ATUAL]
         if p: parc.append(sum(p))
     return serie, fonte, peso, usados, ({'inicio': iso(H_ATUAL), 'mm': r1(sum(parc) / len(parc)), 'pluviometros': len(parc)} if parc else None)
 
@@ -327,6 +342,8 @@ for z in ZONAS:
 if dec['solo']['estado'] == 'indeterminado': alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Umidade do solo indeterminada: {dec['solo']['criterio']}"})
 if dec['motivo_manutencao']: alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"Nível mantido em {NIVEIS[dec['nivel']]}: {dec['motivo_manutencao']}"})
 if not prev_ok: alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': 'Previsão de chuva indisponível nesta atualização'})
+if CEM_SIT['configurado'] and not CEM_SIT['ok']:
+    alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': 'Pluviômetros do CEMADEN indisponíveis nesta atualização' + (f" (último sucesso {CEM_SIT['ultimo_sucesso'].replace('T', ' ')})" if CEM_SIT.get('ultimo_sucesso') else '')})
 for cod in ('40740000', '40710001'):
     if FUTUROS.get(cod): alertas.append({'tipo': 'dado', 'nivel': 0, 'texto': f"{FUTUROS[cod]} registro(s) da estação {cod} com horário no futuro foram descartados (possível erro de relógio)"})
 
@@ -354,6 +371,17 @@ for cod, nome, z, papel in EST:
                 'variaveis': {'nivel': vn, 'vazao': vq, 'chuva': vc},
                 'ok': bool(vs) and all(v['frescor'] not in ('indisponivel', 'futuro') for v in vs),
                 'coleta_ok': coleta.get(cod, {}).get('ok', False), 'erro': coleta.get(cod, {}).get('erro')})
+
+for cod, m in sorted(CEM.items()):
+    ch = chuva_h.get(cod, {}); c24 = [ch[h] for h in horas if FIM_OBS - dt.timedelta(hours=24) <= h < FIM_OBS and ch.get(h) is not None]
+    i = (NOW - m['ultimo']).total_seconds() / 3600
+    vc = {'t': iso(m['ultimo']), 'valor': r1(cem_cache['registros'][cod][iso(m['ultimo'])]), 'idade_h': round(i, 2), 'cadencia_min': 60, 'frescor': frescor(i, 60)}
+    est.append({'cod': cod, 'nome': f"{m['nome']} ({m['municipio'].title()})", 'zona': m['zona'], 'papel': 'chuva (CEMADEN)', 'rede': 'CEMADEN',
+                'usada_chuva': cod in zonas[m['zona']]['pluviometros'], 'lat': m['lat'], 'lon': m['lon'], 'mapa': [m['x'], m['y']],
+                'ultimo': iso(m['ultimo']).replace('T', ' '), 'nivel': None, 'vazao': None,
+                'chuva24': r1(sum(c24)) if c24 else None, 'chuva24_cob': round(len(c24) / 24, 2),
+                'variaveis': {'nivel': None, 'vazao': None, 'chuva': vc}, 'ok': vc['frescor'] not in ('indisponivel', 'futuro'),
+                'coleta_ok': CEM_SIT['ok'], 'erro': CEM_SIT['erro']})
 
 
 def ser(d, nd=2): return [[iso(h), round(v, nd)] for h, v in sorted(d.items()) if h >= H0]
@@ -388,7 +416,8 @@ out = {'versao': 3, 'coleta': iso(NOW), 'atualizado': iso(NOW),
               'h': round(ubvh[1] / 100, 2) if ubvh else None, 'h_t': iso(ubvh[0]) if ubvh else None,
               'nivel': dec['indicadores'][1]['nivel'], 'serie': ser(bv_q, 1)},
        'reguas': reguas, 'estacoes': est, 'modelo_ok': prev_ok, 'fonte_previsao': fonte_prev,
-       'fonte_telemetria': 'ANA telemetriaws1 (serviço legado)', 'coleta_estacoes': coleta, 'log': LOG[-30:]}
+       'fonte_telemetria': 'ANA telemetriaws1 (serviço legado)' + ('; Dados da Rede Observacional do CEMADEN/MCTIC' if CEM else ''),
+       'cemaden': CEM_SIT, 'coleta_estacoes': coleta, 'log': LOG[-30:]}
 out['geracao_snapshot'] = dt.datetime.now(TZ).strftime('%Y-%m-%dT%H:%M:%S')
 import validar   # sinalizações de qualidade (valores extremos plausíveis) seguem no próprio snapshot, sem descartar o dado
 out['id_snapshot'] = ''
