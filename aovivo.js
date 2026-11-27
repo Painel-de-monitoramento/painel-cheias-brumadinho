@@ -27,7 +27,7 @@ window.AoVivo = (() => {
     if (idadeH == null) return 'sem dado';
     if (idadeH < -TOL_FUT / H) return 'futuro';
     const c = (cadMin || 15) / 60;
-    return idadeH <= c + 0.5 ? 'atualizado' : idadeH <= c + 1 ? 'atrasado' : idadeH <= 3 ? 'desatualizado' : 'indisponivel';
+    return idadeH <= c + 1.75 ? 'atualizado' : idadeH <= 3 ? 'atrasado' : 'indisponivel';   // ANA publica em pacotes, 30 min a 1 h 45 min após a medição
   }
   const cadencia = ts => { const t = [...new Set(ts)].sort((a, b) => a - b), d = []; for (let i = 1; i < t.length; i++) d.push((t[i] - t[i - 1]) / 60e3); d.sort((a, b) => a - b); return d.length ? d[Math.floor(d.length / 2)] : null; };
 
