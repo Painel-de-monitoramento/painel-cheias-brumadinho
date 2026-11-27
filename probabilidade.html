@@ -3,13 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://telemetriaws1.ana.gov.br https://api.open-meteo.com https://ensemble-api.open-meteo.com https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://telemetriaws1.ana.gov.br https://api.open-meteo.com https://ensemble-api.open-meteo.com https://api.github.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <title>Probabilidade de enchente Brumadinho</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilo.css">
-<script src="vendor/plotly-2.35.2.min.js" integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" defer></script>
 <script src="motor.js" defer></script>
 <script src="comum.js" defer></script>
 <script src="aovivo.js" defer></script>
@@ -35,24 +34,6 @@
  <h2>Probabilidade por nível de controle</h2>
  <p class="note">Probabilidade de a régua de Alberto Flores atingir cada nível em algum momento do período, e probabilidade de a regra de chuva do estudo (chuva de 5 dias no limite em duas zonas) acionar o nível. A régua mede a cheia que chega à sede; a regra de chuva é o gatilho antecipado usado pela Defesa Civil.</p>
  <div class="scroll"><table class="pbt"><thead><tr><th>Nível</th><th>O que acontece na sede</th><th id="h5">Próximos 5 dias</th><th id="h10">Próximos 10 dias</th></tr></thead><tbody id="tbP"></tbody></table></div>
-</section>
-
-<section>
- <h2>Evolução da probabilidade dia a dia</h2>
- <p class="note">Probabilidade acumulada de atingir cada nível até o dia indicado. As linhas cheias referem-se à régua de Alberto Flores; a linha tracejada, ao acionamento do nível de Atenção pela regra de chuva.</p>
- <div class="fig tall" id="gP"></div>
-</section>
-
-<section>
- <h2>Cota provável em Alberto Flores</h2>
- <p class="note">Cota de pico associada à chuva de 5 dias que termina em cada dia. A linha tracejada é o cenário central (P50) e a faixa azul cobre 80% dos cenários (P10 a P90), somando a incerteza da chuva prevista e a do modelo chuva-vazão. Quando a chuva prevista fica abaixo da faixa em que ocorreram as enchentes, a cota é mantida no valor atual.</p>
- <div class="fig tall" id="gH"></div>
-</section>
-
-<section>
- <h2>Chuva de 5 dias prevista na bacia</h2>
- <p class="note">Chuva média de 5 dias nas três zonas, ponderada pela área, somando a chuva já medida à prevista por cada cenário. A linha vinho marca 100 mm: nenhuma das enchentes registradas ocorreu com menos chuva que isso (a menor foi de 107 mm, em 1992).</p>
- <div class="fig tall" id="gC"></div>
 </section>
 
 <section class="crit">
