@@ -1,0 +1,43 @@
+name: Relógio da coleta
+
+# O agendamento nativo do GitHub (cron) atrasa ou deixa de disparar em repositórios com pouca atividade.
+# Este relógio aciona a coleta a cada 15 minutos por cerca de 5 h 40 min e, ao terminar, reinicia a si mesmo.
+# Acionamentos por workflow_dispatch feitos com o GITHUB_TOKEN são permitidos pelo GitHub e não exigem token pessoal.
+# O agendamento abaixo serve só para religar o relógio caso a corrente se interrompa.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */3 * * *'
+
+permissions:
+  actions: write
+
+concurrency:
+  group: relogio
+  cancel-in-progress: false
+
+jobs:
+  relogio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Acionar a coleta a cada 15 minutos
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          fim=$(( $(date +%s) + 340 * 60 ))
+          while [ "$(date +%s)" -lt "$fim" ]; do
+            if gh workflow run atualizar.yml --repo "$REPO" --ref main; then
+              echo "coleta acionada às $(TZ=America/Sao_Paulo date '+%d/%m %H:%M')"
+            else
+              echo "::warning::falha ao acionar a coleta; nova tentativa no próximo ciclo"
+            fi
+            sleep 900
+          done
+      - name: Reiniciar o relógio
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: gh workflow run relogio.yml --repo "$REPO" --ref main
