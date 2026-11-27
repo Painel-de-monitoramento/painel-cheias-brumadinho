@@ -1,1 +1,1 @@
-{"ultima_tentativa": "2026-11-27T10:25:13", "resultado": "ok", "codigo": 0, "ultima_coleta_valida": "2026-11-27T10:24", "ultima_coleta_completa": "2026-11-27T10:25:13", "falhas_consecutivas": 0, "mensagem": "coleta completa", "run_id": "46006806600"}
+{"ultima_tentativa": "2026-11-27T10:42:42", "resultado": "degradado", "codigo": 2, "ultima_coleta_valida": "2026-11-27T10:39", "ultima_coleta_completa": "2026-11-27T10:25:13", "falhas_consecutivas": 1, "mensagem": "snapshot gravado, mas a régua ou Belo Vale não foram baixados", "run_id": "46008974468"}
