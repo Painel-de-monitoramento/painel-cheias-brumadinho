@@ -87,12 +87,12 @@ def cobertura(fonte, peso, a, b):
 
 
 def frescor(idade_h, cadencia_min_=15):
-    """Classificação da idade de uma leitura, ajustada à cadência real da estação (audit., seção 1):
-    atualizado até cadência + 30 min; atrasado até cadência + 60 min; desatualizado até 3 h; acima disso indisponível."""
+    """Classificação da idade de uma leitura, ajustada à cadência da estação e ao atraso normal de publicação da fonte.
+    A ANA publica a telemetria em pacotes, em geral de 30 min a 1 h 45 min depois da medição (verificado em 27/11/2026):
+    em dia até cadência + 1 h 45 min; atraso na fonte até 3 h; acima de 3 h indisponível para a decisão."""
     if idade_h is None: return 'sem dado'
     if idade_h < -TOL_FUTURO.total_seconds() / 3600: return 'futuro'
     c = (cadencia_min_ or 15) / 60
-    if idade_h <= c + 0.5: return 'atualizado'
-    if idade_h <= c + 1: return 'atrasado'
-    if idade_h <= 3: return 'desatualizado'
+    if idade_h <= c + 1.75: return 'atualizado'
+    if idade_h <= 3: return 'atrasado'
     return 'indisponivel'
