@@ -63,7 +63,9 @@ function render(d) {
     st === 'indeterminado' ? `${SIT[n]}. Nível mantido: há dados insuficientes para confirmar ou rebaixar.` :
     n === 0 ? (st === 'valido' ? 'Nenhum indicador atingiu o limite de Atenção. ' + SIT[0] + '.' : 'Nenhum indicador disponível atingiu o limite de Atenção, mas há dado parcial; o Normal não é confirmado por todos os indicadores.') :
     `${SIT[n]}.${drv.length ? ' Indicado por ' + drv.join(', ') + '.' : ''}`;
-  $('bnS').textContent = [d.nivel.desde ? `Nível vigente desde ${dtf(d.nivel.desde)}${d.nivel.causa ? ' (' + d.nivel.causa.toLowerCase() + ')' : ''}.` : '',
+  // horário da verificação sempre visível; "desde" só aparece quando há nível acima de Normal, para não parecer dado parado
+  const verif = `Dados verificados às ${hm(d.verificado || d.coleta)}; régua medida às ${hm(d.af.h_t || d.af.t)}.`;
+  $('bnS').textContent = [n ? `${N[n]} desde ${dtf(d.nivel.desde)}${d.nivel.causa ? ' (' + d.nivel.causa.toLowerCase() + ')' : ''}.` : '', verif,
     d.nivel.elevado_ao_vivo ? `Elevação detectada pela telemetria ao vivo neste navegador; nível publicado pelo servidor: ${d.nivel.oficial == null ? 'indeterminado' : N[d.nivel.oficial]}.` : '',
     d.nivel.motivo && d.nivel.motivo !== 'rebaixamento reservado ao coletor' ? 'Rebaixamento: ' + d.nivel.motivo + '.' : ''].filter(Boolean).join(' ');
   document.querySelectorAll('#steps li').forEach((li, i) => { li.className = n != null && i === n ? 'cur' : n != null && i < n ? 'past' : ''; li.style.setProperty('--c', HEX[i]); });
