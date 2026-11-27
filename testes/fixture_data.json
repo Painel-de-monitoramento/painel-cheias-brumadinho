@@ -1,0 +1,2604 @@
+{
+"versao": 3,
+"coleta": "2026-11-26T22:54",
+"atualizado": "2026-11-26T22:54",
+"niveis_nomes": [
+"Normal",
+"Atenção",
+"Alerta",
+"Alerta máximo",
+"Emergência"
+],
+"limites": {
+"Z1": [
+140,
+185,
+235,
+260
+],
+"Z2": [
+155,
+210,
+260,
+290
+],
+"Z3": [
+170,
+230,
+285,
+320
+],
+"BV": [
+300,
+600,
+950,
+1150
+],
+"AF": [
+5.0,
+7.0,
+9.0,
+10.5
+]
+},
+"ajuste_umido": 30,
+"areas": {
+"Z1": 1337,
+"Z2": 1428,
+"Z3": 1193
+},
+"convencao_intervalos": "chave horária = início do intervalo [h, h+1h), horário de Brasília; acumulados observados até a última hora concluída",
+"solo": {
+"estado": "normal",
+"umido": false,
+"af_q_ontem": 74.0,
+"af_q_ontem_cobertura": 1.0,
+"p30_bacia": 229.7,
+"p30_completa": true,
+"criterio": "vazão de ontem e chuva de 30 dias abaixo dos critérios"
+},
+"nivel": {
+"atual": 0,
+"bruto": 0,
+"bruto_solo_umido": null,
+"status": "valido",
+"indicadores": [
+{
+"nome": "Régua de Alberto Flores",
+"nivel": 0,
+"estado": "ok",
+"idade_h": 0.9,
+"motivo": null
+},
+{
+"nome": "Vazão em Belo Vale",
+"nivel": 0,
+"estado": "ok",
+"idade_h": 0.4,
+"motivo": null
+},
+{
+"nome": "Chuva em duas zonas",
+"nivel": 0,
+"estado": "ok",
+"idade_h": null,
+"motivo": null
+},
+{
+"nome": "Chuva em uma zona (pré-aviso)",
+"nivel": 0,
+"estado": "ok",
+"idade_h": null,
+"motivo": null
+}
+],
+"desde": "2026-11-26T19:57",
+"causa": "indicadores abaixo do limite de Atenção",
+"motivo": null,
+"descida_h": 21
+},
+"estado": {
+"nivel": 0,
+"desde": "2026-11-26T19:57",
+"causa": "indicadores abaixo do limite de Atenção",
+"historico": [
+{
+"t": "2026-11-26T19:57",
+"de": null,
+"para": 0,
+"causa": "indicadores abaixo do limite de Atenção"
+}
+]
+},
+"qualidade": {
+"nivel": {
+"medicao": "2026-11-26T22:00",
+"idade_h": 0.9,
+"estado": "ok",
+"motivo": null,
+"frescor": "atrasado"
+},
+"vazao": {
+"medicao": "2026-11-26T22:30",
+"idade_h": 0.4,
+"estado": "ok",
+"motivo": null,
+"frescor": "atualizado"
+},
+"chuva": {
+"Z1": {
+"ultima_medicao": "2026-11-26T19:00",
+"cob5": 1.0,
+"cob5_medida": 0.42,
+"cob5_estimada": 0.58,
+"cob5_espacial": 0.42,
+"fonte": "misto",
+"estado": "ok"
+},
+"Z2": {
+"ultima_medicao": "2026-11-26T22:00",
+"cob5": 1.0,
+"cob5_medida": 1.0,
+"cob5_estimada": 0.0,
+"cob5_espacial": 0.86,
+"fonte": "medicao",
+"estado": "ok"
+},
+"Z3": {
+"ultima_medicao": "2026-11-26T22:00",
+"cob5": 1.0,
+"cob5_medida": 1.0,
+"cob5_estimada": 0.0,
+"cob5_espacial": 0.98,
+"fonte": "medicao",
+"estado": "ok"
+}
+},
+"previsao": {
+"fonte": "Open-Meteo",
+"estado": "ok"
+},
+"flags": []
+},
+"previsao_meta": {
+"fonte": "Open-Meteo",
+"obtida": "2026-11-26T22:54",
+"ultima_tentativa": "2026-11-26T22:54",
+"ultimo_sucesso": "2026-11-26T22:54",
+"fonte_ultimo_sucesso": "Open-Meteo",
+"estado": "ok"
+},
+"previsao": [
+{
+"d": "2026-11-27",
+"P5": {
+"Z1": 37.8,
+"Z2": 18.4,
+"Z3": 33.4
+},
+"cob": {
+"Z1": 1.0,
+"Z2": 1.0,
+"Z3": 1.0
+},
+"niveis": {
+"Z1": 0,
+"Z2": 0,
+"Z3": 0
+},
+"nivel": 0,
+"parcial": false
+},
+{
+"d": "2026-11-28",
+"P5": {
+"Z1": 35.0,
+"Z2": 30.7,
+"Z3": 43.0
+},
+"cob": {
+"Z1": 1.0,
+"Z2": 1.0,
+"Z3": 1.0
+},
+"niveis": {
+"Z1": 0,
+"Z2": 0,
+"Z3": 0
+},
+"nivel": 0,
+"parcial": false
+},
+{
+"d": "2026-11-29",
+"P5": {
+"Z1": 31.1,
+"Z2": 37.4,
+"Z3": 46.3
+},
+"cob": {
+"Z1": 1.0,
+"Z2": 1.0,
+"Z3": 1.0
+},
+"niveis": {
+"Z1": 0,
+"Z2": 0,
+"Z3": 0
+},
+"nivel": 0,
+"parcial": false
+}
+],
+"alertas": [
+{
+"tipo": "dado",
+"nivel": 0,
+"texto": "Chuva de 5 dias em Z1: 42% das horas medidas por pluviômetro e 58% estimadas por modelo"
+}
+],
+"zonas": {
+"Z1": {
+"nome": "Alto Paraopeba / Maranhão",
+"fonte": "misto",
+"pluviometros": [
+"2043133"
+],
+"pluviometros_5d": {
+"2043133": 0.42
+},
+"ultima_medicao": "2026-11-26T19:00",
+"fim_acumulado": "2026-11-26T22:00",
+"hora_parcial": null,
+"P24": 4.0,
+"P72": 31.9,
+"P5": 41.8,
+"P30": 211.5,
+"cob24": 1.0,
+"cob72": 1.0,
+"cob5": 1.0,
+"cob30": 1.0,
+"cob5_medida": 0.42,
+"cob5_estimada": 0.58,
+"cob5_espacial": 0.42,
+"fontes5": "EEEEEEEEMMMMMEMMMMMEEEEEEEEEEEEEMMMMMMMMEEEMMEEEEEEEEEEEEMMMMMMMMMMEEEEEEEEEEEEEMMMMMMEEMMEEEEEEEEEEEEEMMMMMEMMMMMEMMEEE",
+"P5_modelo": 70.2,
+"prev72": 20.4,
+"prev72_cob": 1.0,
+"diario": [
+{
+"d": "2026-10-27",
+"obs": 0.1,
+"cob": 1.0,
+"cob_medida": 0.54,
+"fonte": "misto",
+"mod": 0.1,
+"ate": null
+},
+{
+"d": "2026-10-28",
+"obs": 0.2,
+"cob": 1.0,
+"cob_medida": 0.58,
+"fonte": "misto",
+"mod": 0.8,
+"ate": null
+},
+{
+"d": "2026-10-29",
+"obs": 1.1,
+"cob": 1.0,
+"cob_medida": 0.54,
+"fonte": "misto",
+"mod": 4.6,
+"ate": null
+},
+{
+"d": "2026-10-30",
+"obs": 34.6,
+"cob": 1.0,
+"cob_medida": 0.58,
+"fonte": "misto",
+"mod": 29.4,
+"ate": null
+},
+{
+"d": "2026-10-31",
+"obs": 1.4,
+"cob": 1.0,
+"cob_medida": 0.17,
+"fonte": "misto",
+"mod": 2.1,
+"ate": null
+},
+{
+"d": "2026-11-01",
+"obs": 7.5,
+"cob": 1.0,
+"cob_medida": 0.5,
+"fonte": "misto",
+"mod": 11.0,
+"ate": null
+},
+{
+"d": "2026-11-02",
+"obs": 19.5,
+"cob": 1.0,
+"cob_medida": 0.54,
+"fonte": "misto",
+"mod": 6.1,
+"ate": null
+},
+{
+"d": "2026-11-03",
+"obs": 0.4,
+"cob": 1.0,
+"cob_medida": 0.54,
+"fonte": "misto",
+"mod": 2.5,
+"ate": null
+},
+{
+"d": "2026-11-04",
+"obs": 0.2,
+"cob": 1.0,
+"cob_medida": 0.46,
+"fonte": "misto",
+"mod": 0.5,
+"ate": null
+},
+{
+"d": "2026-11-05",
+"obs": 2.1,
+"cob": 1.0,
+"cob_medida": 0.46,
+"fonte": "misto",
+"mod": 7.9,
+"ate": null
+},
+{
+"d": "2026-11-06",
+"obs": 2.3,
+"cob": 1.0,
+"cob_medida": 0.46,
+"fonte": "misto",
+"mod": 0.5,
+"ate": null
+},
+{
+"d": "2026-11-07",
+"obs": 9.8,
+"cob": 1.0,
+"cob_medida": 0.29,
+"fonte": "misto",
+"mod": 15.6,
+"ate": null
+},
+{
+"d": "2026-11-08",
+"obs": 11.6,
+"cob": 1.0,
+"cob_medida": 0.54,
+"fonte": "misto",
+"mod": 16.8,
+"ate": null
+},
+{
+"d": "2026-11-09",
+"obs": 19.3,
+"cob": 1.0,
+"cob_medida": 0.42,
+"fonte": "misto",
+"mod": 8.2,
+"ate": null
+},
+{
+"d": "2026-11-10",
+"obs": 1.1,
+"cob": 1.0,
+"cob_medida": 0.46,
+"fonte": "misto",
+"mod": 1.0,
+"ate": null
+},
+{
+"d": "2026-11-11",
+"obs": 0.6,
+"cob": 1.0,
+"cob_medida": 0.5,
+"fonte": "misto",
+"mod": 1.2,
+"ate": null
+},
+{
+"d": "2026-11-12",
+"obs": 0.3,
+"cob": 1.0,
+"cob_medida": 0.42,
+"fonte": "misto",
+"mod": 1.5,
+"ate": null
+},
+{
+"d": "2026-11-13",
+"obs": 10.8,
+"cob": 1.0,
+"cob_medida": 0.33,
+"fonte": "misto",
+"mod": 12.9,
+"ate": null
+},
+{
+"d": "2026-11-14",
+"obs": 3.2,
+"cob": 1.0,
+"cob_medida": 0.21,
+"fonte": "misto",
+"mod": 3.5,
+"ate": null
+},
+{
+"d": "2026-11-15",
+"obs": 6.5,
+"cob": 1.0,
+"cob_medida": 0.46,
+"fonte": "misto",
+"mod": 8.0,
+"ate": null
+},
+{
+"d": "2026-11-16",
+"obs": 12.1,
+"cob": 1.0,
+"cob_medida": 0.29,
+"fonte": "misto",
+"mod": 16.4,
+"ate": null
+},
+{
+"d": "2026-11-17",
+"obs": 1.8,
+"cob": 1.0,
+"cob_medida": 0.29,
+"fonte": "misto",
+"mod": 2.2,
+"ate": null
+},
+{
+"d": "2026-11-18",
+"obs": 3.7,
+"cob": 1.0,
+"cob_medida": 0.25,
+"fonte": "misto",
+"mod": 5.0,
+"ate": null
+},
+{
+"d": "2026-11-19",
+"obs": 13.0,
+"cob": 1.0,
+"cob_medida": 0.12,
+"fonte": "misto",
+"mod": 14.4,
+"ate": null
+},
+{
+"d": "2026-11-20",
+"obs": 5.3,
+"cob": 1.0,
+"cob_medida": 0.08,
+"fonte": "misto",
+"mod": 5.7,
+"ate": null
+},
+{
+"d": "2026-11-21",
+"obs": 1.4,
+"cob": 1.0,
+"cob_medida": 0.33,
+"fonte": "misto",
+"mod": 1.6,
+"ate": null
+},
+{
+"d": "2026-11-22",
+"obs": 8.1,
+"cob": 1.0,
+"cob_medida": 0.42,
+"fonte": "misto",
+"mod": 13.0,
+"ate": null
+},
+{
+"d": "2026-11-23",
+"obs": 11.5,
+"cob": 1.0,
+"cob_medida": 0.42,
+"fonte": "misto",
+"mod": 12.4,
+"ate": null
+},
+{
+"d": "2026-11-24",
+"obs": 11.4,
+"cob": 1.0,
+"cob_medida": 0.42,
+"fonte": "misto",
+"mod": 15.3,
+"ate": null
+},
+{
+"d": "2026-11-25",
+"obs": 6.7,
+"cob": 1.0,
+"cob_medida": 0.33,
+"fonte": "misto",
+"mod": 12.1,
+"ate": null
+},
+{
+"d": "2026-11-26",
+"obs": 4.0,
+"cob": 1.0,
+"cob_medida": 0.55,
+"fonte": "misto",
+"mod": 17.4,
+"ate": "2026-11-26T22:00"
+}
+],
+"previsao": [
+{
+"d": "2026-11-26",
+"prev": 0.0,
+"cob": 1.0,
+"desde": "2026-11-26T22:00"
+},
+{
+"d": "2026-11-27",
+"prev": 4.1,
+"cob": 1.0,
+"desde": "2026-11-27T00:00"
+},
+{
+"d": "2026-11-28",
+"prev": 8.8,
+"cob": 1.0,
+"desde": "2026-11-28T00:00"
+},
+{
+"d": "2026-11-29",
+"prev": 7.5,
+"cob": 1.0,
+"desde": "2026-11-29T00:00"
+},
+{
+"d": "2026-11-30",
+"prev": 15.6,
+"cob": 1.0,
+"desde": "2026-11-30T00:00"
+},
+{
+"d": "2026-12-01",
+"prev": 13.7,
+"cob": 1.0,
+"desde": "2026-12-01T00:00"
+},
+{
+"d": "2026-12-02",
+"prev": 14.0,
+"cob": 0.96,
+"desde": "2026-12-02T00:00"
+}
+],
+"nivel": 0,
+"estado": "ok",
+"limites": [
+140,
+185,
+235,
+260
+]
+},
+"Z2": {
+"nome": "Camapuã / Brumado",
+"fonte": "medicao",
+"pluviometros": [
+"40680001",
+"40686000",
+"40700050",
+"40700080"
+],
+"pluviometros_5d": {
+"40680001": 0.45,
+"40686000": 1.0,
+"40700050": 1.0,
+"40700080": 1.0
+},
+"ultima_medicao": "2026-11-26T22:00",
+"fim_acumulado": "2026-11-26T22:00",
+"hora_parcial": null,
+"P24": 15.5,
+"P72": 16.6,
+"P5": 16.8,
+"P30": 224.8,
+"cob24": 1.0,
+"cob72": 1.0,
+"cob5": 1.0,
+"cob30": 1.0,
+"cob5_medida": 1.0,
+"cob5_estimada": 0.0,
+"cob5_espacial": 0.86,
+"fontes5": "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+"P5_modelo": 66.8,
+"prev72": 20.8,
+"prev72_cob": 1.0,
+"diario": [
+{
+"d": "2026-10-27",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.0,
+"ate": null
+},
+{
+"d": "2026-10-28",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.4,
+"ate": null
+},
+{
+"d": "2026-10-29",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 3.9,
+"ate": null
+},
+{
+"d": "2026-10-30",
+"obs": 23.9,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 27.0,
+"ate": null
+},
+{
+"d": "2026-10-31",
+"obs": 0.8,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 2.2,
+"ate": null
+},
+{
+"d": "2026-11-01",
+"obs": 29.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 11.0,
+"ate": null
+},
+{
+"d": "2026-11-02",
+"obs": 5.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 5.7,
+"ate": null
+},
+{
+"d": "2026-11-03",
+"obs": 1.4,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.5,
+"ate": null
+},
+{
+"d": "2026-11-04",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.4,
+"ate": null
+},
+{
+"d": "2026-11-05",
+"obs": 6.7,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 11.4,
+"ate": null
+},
+{
+"d": "2026-11-06",
+"obs": 0.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.8,
+"ate": null
+},
+{
+"d": "2026-11-07",
+"obs": 27.8,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 9.1,
+"ate": null
+},
+{
+"d": "2026-11-08",
+"obs": 0.8,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 15.0,
+"ate": null
+},
+{
+"d": "2026-11-09",
+"obs": 16.6,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 6.9,
+"ate": null
+},
+{
+"d": "2026-11-10",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.8,
+"ate": null
+},
+{
+"d": "2026-11-11",
+"obs": 0.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 1.4,
+"ate": null
+},
+{
+"d": "2026-11-12",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 2.4,
+"ate": null
+},
+{
+"d": "2026-11-13",
+"obs": 32.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 6.4,
+"ate": null
+},
+{
+"d": "2026-11-14",
+"obs": 15.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 3.4,
+"ate": null
+},
+{
+"d": "2026-11-15",
+"obs": 11.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 4.0,
+"ate": null
+},
+{
+"d": "2026-11-16",
+"obs": 3.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 12.2,
+"ate": null
+},
+{
+"d": "2026-11-17",
+"obs": 11.5,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 3.9,
+"ate": null
+},
+{
+"d": "2026-11-18",
+"obs": 0.3,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 9.1,
+"ate": null
+},
+{
+"d": "2026-11-19",
+"obs": 4.6,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 18.6,
+"ate": null
+},
+{
+"d": "2026-11-20",
+"obs": 14.4,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 5.5,
+"ate": null
+},
+{
+"d": "2026-11-21",
+"obs": 2.9,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 3.6,
+"ate": null
+},
+{
+"d": "2026-11-22",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 12.7,
+"ate": null
+},
+{
+"d": "2026-11-23",
+"obs": 0.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 11.8,
+"ate": null
+},
+{
+"d": "2026-11-24",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 8.9,
+"ate": null
+},
+{
+"d": "2026-11-25",
+"obs": 1.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 11.8,
+"ate": null
+},
+{
+"d": "2026-11-26",
+"obs": 15.4,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 21.6,
+"ate": "2026-11-26T22:00"
+}
+],
+"previsao": [
+{
+"d": "2026-11-26",
+"prev": 0.0,
+"cob": 1.0,
+"desde": "2026-11-26T22:00"
+},
+{
+"d": "2026-11-27",
+"prev": 1.6,
+"cob": 1.0,
+"desde": "2026-11-27T00:00"
+},
+{
+"d": "2026-11-28",
+"prev": 12.5,
+"cob": 1.0,
+"desde": "2026-11-28T00:00"
+},
+{
+"d": "2026-11-29",
+"prev": 6.7,
+"cob": 1.0,
+"desde": "2026-11-29T00:00"
+},
+{
+"d": "2026-11-30",
+"prev": 18.6,
+"cob": 1.0,
+"desde": "2026-11-30T00:00"
+},
+{
+"d": "2026-12-01",
+"prev": 13.2,
+"cob": 1.0,
+"desde": "2026-12-01T00:00"
+},
+{
+"d": "2026-12-02",
+"prev": 9.6,
+"cob": 0.96,
+"desde": "2026-12-02T00:00"
+}
+],
+"nivel": 0,
+"estado": "ok",
+"limites": [
+155,
+210,
+260,
+290
+]
+},
+"Z3": {
+"nome": "Médio Paraopeba",
+"fonte": "medicao",
+"pluviometros": [
+"40740000",
+"40710001",
+"40712000",
+"40712600"
+],
+"pluviometros_5d": {
+"40740000": 0.97,
+"40710001": 0.95,
+"40712000": 1.0,
+"40712600": 1.0
+},
+"ultima_medicao": "2026-11-26T22:00",
+"fim_acumulado": "2026-11-26T22:00",
+"hora_parcial": {
+"inicio": "2026-11-26T22:00",
+"mm": 0.0,
+"pluviometros": 1
+},
+"P24": 18.0,
+"P72": 27.4,
+"P5": 29.2,
+"P30": 255.9,
+"cob24": 1.0,
+"cob72": 1.0,
+"cob5": 1.0,
+"cob30": 1.0,
+"cob5_medida": 1.0,
+"cob5_estimada": 0.0,
+"cob5_espacial": 0.98,
+"fontes5": "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+"P5_modelo": 66.3,
+"prev72": 18.9,
+"prev72_cob": 1.0,
+"diario": [
+{
+"d": "2026-10-27",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.1,
+"ate": null
+},
+{
+"d": "2026-10-28",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.3,
+"ate": null
+},
+{
+"d": "2026-10-29",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 4.8,
+"ate": null
+},
+{
+"d": "2026-10-30",
+"obs": 39.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 28.7,
+"ate": null
+},
+{
+"d": "2026-10-31",
+"obs": 1.9,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 2.5,
+"ate": null
+},
+{
+"d": "2026-11-01",
+"obs": 17.4,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 11.7,
+"ate": null
+},
+{
+"d": "2026-11-02",
+"obs": 1.7,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 8.3,
+"ate": null
+},
+{
+"d": "2026-11-03",
+"obs": 0.8,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 1.4,
+"ate": null
+},
+{
+"d": "2026-11-04",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.3,
+"ate": null
+},
+{
+"d": "2026-11-05",
+"obs": 3.6,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 7.0,
+"ate": null
+},
+{
+"d": "2026-11-06",
+"obs": 3.6,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 2.9,
+"ate": null
+},
+{
+"d": "2026-11-07",
+"obs": 24.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 16.3,
+"ate": null
+},
+{
+"d": "2026-11-08",
+"obs": 8.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 14.4,
+"ate": null
+},
+{
+"d": "2026-11-09",
+"obs": 5.5,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 3.8,
+"ate": null
+},
+{
+"d": "2026-11-10",
+"obs": 0.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.6,
+"ate": null
+},
+{
+"d": "2026-11-11",
+"obs": 0.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 0.6,
+"ate": null
+},
+{
+"d": "2026-11-12",
+"obs": 0.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 1.7,
+"ate": null
+},
+{
+"d": "2026-11-13",
+"obs": 37.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 3.2,
+"ate": null
+},
+{
+"d": "2026-11-14",
+"obs": 3.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 1.7,
+"ate": null
+},
+{
+"d": "2026-11-15",
+"obs": 4.5,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 3.6,
+"ate": null
+},
+{
+"d": "2026-11-16",
+"obs": 29.9,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 11.7,
+"ate": null
+},
+{
+"d": "2026-11-17",
+"obs": 1.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 8.3,
+"ate": null
+},
+{
+"d": "2026-11-18",
+"obs": 4.3,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 11.2,
+"ate": null
+},
+{
+"d": "2026-11-19",
+"obs": 6.8,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 7.6,
+"ate": null
+},
+{
+"d": "2026-11-20",
+"obs": 5.3,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 6.5,
+"ate": null
+},
+{
+"d": "2026-11-21",
+"obs": 28.8,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 4.8,
+"ate": null
+},
+{
+"d": "2026-11-22",
+"obs": 0.2,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 11.9,
+"ate": null
+},
+{
+"d": "2026-11-23",
+"obs": 1.6,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 10.1,
+"ate": null
+},
+{
+"d": "2026-11-24",
+"obs": 0.1,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 14.8,
+"ate": null
+},
+{
+"d": "2026-11-25",
+"obs": 9.4,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 10.9,
+"ate": null
+},
+{
+"d": "2026-11-26",
+"obs": 18.0,
+"cob": 1.0,
+"cob_medida": 1.0,
+"fonte": "medicao",
+"mod": 17.4,
+"ate": "2026-11-26T22:00"
+}
+],
+"previsao": [
+{
+"d": "2026-11-26",
+"prev": 0.0,
+"cob": 1.0,
+"desde": "2026-11-26T22:00"
+},
+{
+"d": "2026-11-27",
+"prev": 4.4,
+"cob": 1.0,
+"desde": "2026-11-27T00:00"
+},
+{
+"d": "2026-11-28",
+"prev": 11.2,
+"cob": 1.0,
+"desde": "2026-11-28T00:00"
+},
+{
+"d": "2026-11-29",
+"prev": 3.3,
+"cob": 1.0,
+"desde": "2026-11-29T00:00"
+},
+{
+"d": "2026-11-30",
+"prev": 8.7,
+"cob": 1.0,
+"desde": "2026-11-30T00:00"
+},
+{
+"d": "2026-12-01",
+"prev": 14.6,
+"cob": 1.0,
+"desde": "2026-12-01T00:00"
+},
+{
+"d": "2026-12-02",
+"prev": 13.8,
+"cob": 0.96,
+"desde": "2026-12-02T00:00"
+}
+],
+"nivel": 0,
+"estado": "ok",
+"limites": [
+170,
+230,
+285,
+320
+]
+}
+},
+"af": {
+"h": 2.71,
+"h_t": "2026-11-26T22:00",
+"t": "2026-11-26T22:00",
+"q": 86.3,
+"q_t": "2026-11-26T22:00",
+"tendencia_cm_h": -1.3,
+"nivel": 0,
+"serie": [
+[
+"2026-11-24T22:00",
+2.41
+],
+[
+"2026-11-24T23:00",
+2.4
+],
+[
+"2026-11-25T00:00",
+2.4
+],
+[
+"2026-11-25T01:00",
+2.39
+],
+[
+"2026-11-25T02:00",
+2.39
+],
+[
+"2026-11-25T03:00",
+2.38
+],
+[
+"2026-11-25T04:00",
+2.38
+],
+[
+"2026-11-25T05:00",
+2.38
+],
+[
+"2026-11-25T06:00",
+2.37
+],
+[
+"2026-11-25T07:00",
+2.37
+],
+[
+"2026-11-25T08:00",
+2.37
+],
+[
+"2026-11-25T09:00",
+2.38
+],
+[
+"2026-11-25T10:00",
+2.4
+],
+[
+"2026-11-25T11:00",
+2.44
+],
+[
+"2026-11-25T12:00",
+2.48
+],
+[
+"2026-11-25T13:00",
+2.53
+],
+[
+"2026-11-25T14:00",
+2.58
+],
+[
+"2026-11-25T15:00",
+2.62
+],
+[
+"2026-11-25T16:00",
+2.67
+],
+[
+"2026-11-25T17:00",
+2.72
+],
+[
+"2026-11-25T18:00",
+2.78
+],
+[
+"2026-11-25T19:00",
+2.87
+],
+[
+"2026-11-25T20:00",
+2.92
+],
+[
+"2026-11-25T22:00",
+3.03
+],
+[
+"2026-11-25T23:00",
+3.06
+],
+[
+"2026-11-26T00:00",
+3.08
+],
+[
+"2026-11-26T01:00",
+3.1
+],
+[
+"2026-11-26T02:00",
+3.1
+],
+[
+"2026-11-26T03:00",
+3.1
+],
+[
+"2026-11-26T04:00",
+3.08
+],
+[
+"2026-11-26T05:00",
+3.07
+],
+[
+"2026-11-26T06:00",
+3.04
+],
+[
+"2026-11-26T07:00",
+3.02
+],
+[
+"2026-11-26T08:00",
+2.99
+],
+[
+"2026-11-26T09:00",
+2.96
+],
+[
+"2026-11-26T10:00",
+2.94
+],
+[
+"2026-11-26T11:00",
+2.91
+],
+[
+"2026-11-26T12:00",
+2.88
+],
+[
+"2026-11-26T13:00",
+2.85
+],
+[
+"2026-11-26T14:00",
+2.82
+],
+[
+"2026-11-26T15:00",
+2.8
+],
+[
+"2026-11-26T16:00",
+2.78
+],
+[
+"2026-11-26T17:00",
+2.77
+],
+[
+"2026-11-26T18:00",
+2.76
+],
+[
+"2026-11-26T19:00",
+2.75
+],
+[
+"2026-11-26T20:00",
+2.73
+],
+[
+"2026-11-26T21:00",
+2.72
+],
+[
+"2026-11-26T22:00",
+2.71
+]
+],
+"serie_q": [
+[
+"2026-11-24T22:00",
+61.2
+],
+[
+"2026-11-24T23:00",
+60.6
+],
+[
+"2026-11-25T00:00",
+60.4
+],
+[
+"2026-11-25T01:00",
+59.9
+],
+[
+"2026-11-25T02:00",
+59.7
+],
+[
+"2026-11-25T03:00",
+59.3
+],
+[
+"2026-11-25T04:00",
+58.9
+],
+[
+"2026-11-25T05:00",
+58.8
+],
+[
+"2026-11-25T06:00",
+58.2
+],
+[
+"2026-11-25T07:00",
+58.2
+],
+[
+"2026-11-25T08:00",
+58.4
+],
+[
+"2026-11-25T09:00",
+59.1
+],
+[
+"2026-11-25T10:00",
+60.6
+],
+[
+"2026-11-25T11:00",
+63.1
+],
+[
+"2026-11-25T12:00",
+66.9
+],
+[
+"2026-11-25T13:00",
+70.8
+],
+[
+"2026-11-25T14:00",
+75.0
+],
+[
+"2026-11-25T15:00",
+78.6
+],
+[
+"2026-11-25T16:00",
+83.1
+],
+[
+"2026-11-25T17:00",
+87.0
+],
+[
+"2026-11-25T18:00",
+92.7
+],
+[
+"2026-11-25T19:00",
+100.0
+],
+[
+"2026-11-25T20:00",
+104.0
+],
+[
+"2026-11-25T22:00",
+113.4
+],
+[
+"2026-11-25T23:00",
+115.4
+],
+[
+"2026-11-26T00:00",
+117.3
+],
+[
+"2026-11-26T01:00",
+118.8
+],
+[
+"2026-11-26T02:00",
+119.0
+],
+[
+"2026-11-26T03:00",
+118.8
+],
+[
+"2026-11-26T04:00",
+117.8
+],
+[
+"2026-11-26T05:00",
+116.3
+],
+[
+"2026-11-26T06:00",
+114.1
+],
+[
+"2026-11-26T07:00",
+112.0
+],
+[
+"2026-11-26T08:00",
+109.8
+],
+[
+"2026-11-26T09:00",
+107.5
+],
+[
+"2026-11-26T10:00",
+105.2
+],
+[
+"2026-11-26T11:00",
+103.0
+],
+[
+"2026-11-26T12:00",
+100.6
+],
+[
+"2026-11-26T13:00",
+98.4
+],
+[
+"2026-11-26T14:00",
+96.2
+],
+[
+"2026-11-26T15:00",
+94.5
+],
+[
+"2026-11-26T16:00",
+92.9
+],
+[
+"2026-11-26T17:00",
+91.5
+],
+[
+"2026-11-26T18:00",
+90.7
+],
+[
+"2026-11-26T19:00",
+89.6
+],
+[
+"2026-11-26T20:00",
+88.6
+],
+[
+"2026-11-26T21:00",
+87.4
+],
+[
+"2026-11-26T22:00",
+86.3
+]
+]
+},
+"bv": {
+"q": 55.0,
+"q_t": "2026-11-26T22:30",
+"t": "2026-11-26T22:30",
+"h": 1.34,
+"h_t": "2026-11-26T22:30",
+"nivel": 0,
+"serie": [
+[
+"2026-11-24T21:00",
+62.2
+],
+[
+"2026-11-25T00:00",
+76.8
+],
+[
+"2026-11-25T01:00",
+78.3
+],
+[
+"2026-11-25T02:00",
+80.6
+],
+[
+"2026-11-25T03:00",
+81.6
+],
+[
+"2026-11-25T04:00",
+81.6
+],
+[
+"2026-11-25T05:00",
+81.2
+],
+[
+"2026-11-25T06:00",
+80.3
+],
+[
+"2026-11-25T07:00",
+79.0
+],
+[
+"2026-11-25T08:00",
+77.3
+],
+[
+"2026-11-25T09:00",
+75.0
+],
+[
+"2026-11-25T10:00",
+73.0
+],
+[
+"2026-11-25T11:00",
+71.0
+],
+[
+"2026-11-25T12:00",
+69.0
+],
+[
+"2026-11-25T13:00",
+67.1
+],
+[
+"2026-11-25T14:00",
+65.3
+],
+[
+"2026-11-25T15:00",
+63.2
+],
+[
+"2026-11-25T16:00",
+62.1
+],
+[
+"2026-11-25T17:00",
+61.6
+],
+[
+"2026-11-25T18:00",
+60.1
+],
+[
+"2026-11-25T19:00",
+59.3
+],
+[
+"2026-11-25T20:00",
+58.4
+],
+[
+"2026-11-25T21:00",
+57.6
+],
+[
+"2026-11-25T22:00",
+56.3
+],
+[
+"2026-11-25T23:00",
+55.0
+],
+[
+"2026-11-26T00:00",
+54.5
+],
+[
+"2026-11-26T01:00",
+53.6
+],
+[
+"2026-11-26T02:00",
+53.1
+],
+[
+"2026-11-26T03:00",
+53.0
+],
+[
+"2026-11-26T04:00",
+54.0
+],
+[
+"2026-11-26T05:00",
+54.1
+],
+[
+"2026-11-26T06:00",
+53.7
+],
+[
+"2026-11-26T07:00",
+52.5
+],
+[
+"2026-11-26T08:00",
+51.8
+],
+[
+"2026-11-26T09:00",
+50.6
+],
+[
+"2026-11-26T10:00",
+49.7
+],
+[
+"2026-11-26T11:00",
+48.9
+],
+[
+"2026-11-26T12:00",
+48.1
+],
+[
+"2026-11-26T13:00",
+47.7
+],
+[
+"2026-11-26T14:00",
+47.3
+],
+[
+"2026-11-26T15:00",
+46.9
+],
+[
+"2026-11-26T16:00",
+46.0
+],
+[
+"2026-11-26T17:00",
+45.5
+],
+[
+"2026-11-26T18:00",
+49.0
+],
+[
+"2026-11-26T19:00",
+55.4
+],
+[
+"2026-11-26T20:00",
+57.3
+],
+[
+"2026-11-26T21:00",
+56.1
+],
+[
+"2026-11-26T22:00",
+55.0
+]
+]
+},
+"reguas": {
+"40700050": [
+[
+"2026-11-25T23:00",
+2.34
+],
+[
+"2026-11-26T00:00",
+2.29
+],
+[
+"2026-11-26T01:00",
+2.26
+],
+[
+"2026-11-26T02:00",
+2.23
+],
+[
+"2026-11-26T03:00",
+2.22
+],
+[
+"2026-11-26T04:00",
+2.21
+],
+[
+"2026-11-26T05:00",
+2.21
+],
+[
+"2026-11-26T06:00",
+2.19
+],
+[
+"2026-11-26T07:00",
+2.19
+],
+[
+"2026-11-26T08:00",
+2.17
+],
+[
+"2026-11-26T09:00",
+2.17
+],
+[
+"2026-11-26T10:00",
+2.17
+],
+[
+"2026-11-26T11:00",
+2.17
+],
+[
+"2026-11-26T12:00",
+2.17
+],
+[
+"2026-11-26T13:00",
+2.17
+],
+[
+"2026-11-26T14:00",
+2.18
+],
+[
+"2026-11-26T15:00",
+2.18
+],
+[
+"2026-11-26T16:00",
+2.18
+],
+[
+"2026-11-26T17:00",
+2.19
+],
+[
+"2026-11-26T18:00",
+2.19
+],
+[
+"2026-11-26T19:00",
+2.19
+],
+[
+"2026-11-26T20:00",
+2.19
+],
+[
+"2026-11-26T21:00",
+2.19
+],
+[
+"2026-11-26T22:00",
+2.19
+]
+],
+"40710001": [
+[
+"2026-11-25T23:00",
+1.34
+],
+[
+"2026-11-26T00:00",
+1.33
+],
+[
+"2026-11-26T01:00",
+1.31
+],
+[
+"2026-11-26T02:00",
+1.3
+],
+[
+"2026-11-26T03:00",
+1.3
+],
+[
+"2026-11-26T04:00",
+1.32
+],
+[
+"2026-11-26T05:00",
+1.32
+],
+[
+"2026-11-26T06:00",
+1.31
+],
+[
+"2026-11-26T07:00",
+1.28
+],
+[
+"2026-11-26T08:00",
+1.27
+],
+[
+"2026-11-26T09:00",
+1.25
+],
+[
+"2026-11-26T10:00",
+1.23
+],
+[
+"2026-11-26T11:00",
+1.21
+],
+[
+"2026-11-26T12:00",
+1.19
+],
+[
+"2026-11-26T13:00",
+1.18
+],
+[
+"2026-11-26T14:00",
+1.17
+],
+[
+"2026-11-26T15:00",
+1.16
+],
+[
+"2026-11-26T16:00",
+1.14
+],
+[
+"2026-11-26T17:00",
+1.13
+],
+[
+"2026-11-26T18:00",
+1.21
+],
+[
+"2026-11-26T19:00",
+1.35
+],
+[
+"2026-11-26T20:00",
+1.39
+],
+[
+"2026-11-26T21:00",
+1.36
+],
+[
+"2026-11-26T22:00",
+1.34
+]
+],
+"40740000": [
+[
+"2026-11-25T23:00",
+3.06
+],
+[
+"2026-11-26T00:00",
+3.08
+],
+[
+"2026-11-26T01:00",
+3.1
+],
+[
+"2026-11-26T02:00",
+3.1
+],
+[
+"2026-11-26T03:00",
+3.1
+],
+[
+"2026-11-26T04:00",
+3.08
+],
+[
+"2026-11-26T05:00",
+3.07
+],
+[
+"2026-11-26T06:00",
+3.04
+],
+[
+"2026-11-26T07:00",
+3.02
+],
+[
+"2026-11-26T08:00",
+2.99
+],
+[
+"2026-11-26T09:00",
+2.96
+],
+[
+"2026-11-26T10:00",
+2.94
+],
+[
+"2026-11-26T11:00",
+2.91
+],
+[
+"2026-11-26T12:00",
+2.88
+],
+[
+"2026-11-26T13:00",
+2.85
+],
+[
+"2026-11-26T14:00",
+2.82
+],
+[
+"2026-11-26T15:00",
+2.8
+],
+[
+"2026-11-26T16:00",
+2.78
+],
+[
+"2026-11-26T17:00",
+2.77
+],
+[
+"2026-11-26T18:00",
+2.76
+],
+[
+"2026-11-26T19:00",
+2.75
+],
+[
+"2026-11-26T20:00",
+2.73
+],
+[
+"2026-11-26T21:00",
+2.72
+],
+[
+"2026-11-26T22:00",
+2.71
+]
+]
+},
+"estacoes": [
+{
+"cod": "40740000",
+"nome": "Alberto Flores",
+"zona": "Z3",
+"papel": "régua de referência",
+"usada_chuva": true,
+"ultimo": "2026-11-26 22:00",
+"nivel": 2.71,
+"vazao": 86.3,
+"chuva24": 0.2,
+"chuva24_cob": 1.0,
+"variaveis": {
+"nivel": {
+"t": "2026-11-26T22:00",
+"valor": 2.71,
+"idade_h": 0.9,
+"cadencia_min": 15.0,
+"frescor": "atrasado"
+},
+"vazao": {
+"t": "2026-11-26T22:00",
+"valor": 86.3,
+"idade_h": 0.9,
+"cadencia_min": 15.0,
+"frescor": "atrasado"
+},
+"chuva": {
+"t": "2026-11-26T22:00",
+"valor": 0.0,
+"idade_h": 0.9,
+"cadencia_min": 15.0,
+"frescor": "atrasado"
+}
+},
+"ok": true,
+"coleta_ok": true,
+"erro": null
+},
+{
+"cod": "40710001",
+"nome": "Belo Vale",
+"zona": "Z3",
+"papel": "vazão de controle",
+"usada_chuva": true,
+"ultimo": "2026-11-26 22:30",
+"nivel": 1.34,
+"vazao": 55.0,
+"chuva24": 38.6,
+"chuva24_cob": 1.0,
+"variaveis": {
+"nivel": {
+"t": "2026-11-26T22:30",
+"valor": 1.34,
+"idade_h": 0.4,
+"cadencia_min": 15.0,
+"frescor": "atualizado"
+},
+"vazao": {
+"t": "2026-11-26T22:30",
+"valor": 55.0,
+"idade_h": 0.4,
+"cadencia_min": 15.0,
+"frescor": "atualizado"
+},
+"chuva": {
+"t": "2026-11-26T22:30",
+"valor": 0.0,
+"idade_h": 0.4,
+"cadencia_min": 15.0,
+"frescor": "atualizado"
+}
+},
+"ok": true,
+"coleta_ok": true,
+"erro": null
+},
+{
+"cod": "40680001",
+"nome": "Entre Rios de Minas",
+"zona": "Z2",
+"papel": "chuva",
+"usada_chuva": true,
+"ultimo": "2026-11-26 21:45",
+"nivel": 2.03,
+"vazao": 11.2,
+"chuva24": 0.0,
+"chuva24_cob": 0.54,
+"variaveis": {
+"nivel": {
+"t": "2026-11-26T21:45",
+"valor": 2.03,
+"idade_h": 1.15,
+"cadencia_min": 15.0,
+"frescor": "atrasado"
+},
+"vazao": {
+"t": "2026-11-26T21:45",
+"valor": 11.2,
+"idade_h": 1.15,
+"cadencia_min": 15.0,
+"frescor": "atrasado"
+},
+"chuva": {
+"t": "2026-11-26T21:45",
+"valor": 0.0,
+"idade_h": 1.15,
+"cadencia_min": 15.0,
+"frescor": "atrasado"
+}
+},
+"ok": true,
+"coleta_ok": true,
+"erro": null
+},
+{
+"cod": "40686000",
+"nome": "PCH Salto do Paraopeba Rio Camapuã",
+"zona": "Z2",
+"papel": "chuva",
+"usada_chuva": true,
+"ultimo": "2026-11-26 22:00",
+"nivel": 1.1,
+"vazao": 5.8,
+"chuva24": 23.0,
+"chuva24_cob": 1.0,
+"variaveis": {
+"nivel": {
+"t": "2026-11-26T22:00",
+"valor": 1.1,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+},
+"vazao": {
+"t": "2026-11-26T22:00",
+"valor": 5.8,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+},
+"chuva": {
+"t": "2026-11-26T22:00",
+"valor": 0.0,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+}
+},
+"ok": true,
+"coleta_ok": true,
+"erro": null
+},
+{
+"cod": "40700050",
+"nome": "PCH Salto do Paraopeba montante",
+"zona": "Z2",
+"papel": "chuva e régua do eixo",
+"usada_chuva": true,
+"ultimo": "2026-11-26 22:00",
+"nivel": 2.19,
+"vazao": 23.6,
+"chuva24": 6.4,
+"chuva24_cob": 1.0,
+"variaveis": {
+"nivel": {
+"t": "2026-11-26T22:00",
+"valor": 2.19,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+},
+"vazao": {
+"t": "2026-11-26T22:00",
+"valor": 23.6,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+},
+"chuva": {
+"t": "2026-11-26T22:00",
+"valor": 0.0,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+}
+},
+"ok": true,
+"coleta_ok": true,
+"erro": null
+},
+{
+"cod": "40700080",
+"nome": "PCH Salto do Paraopeba barramento",
+"zona": "Z2",
+"papel": "chuva",
+"usada_chuva": true,
+"ultimo": "2026-11-26 22:00",
+"nivel": null,
+"vazao": null,
+"chuva24": 18.4,
+"chuva24_cob": 1.0,
+"variaveis": {
+"nivel": null,
+"vazao": null,
+"chuva": {
+"t": "2026-11-26T22:00",
+"valor": 0.0,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+}
+},
+"ok": true,
+"coleta_ok": true,
+"erro": null
+},
+{
+"cod": "40712000",
+"nome": "CGH Caquende jusante",
+"zona": "Z3",
+"papel": "chuva",
+"usada_chuva": true,
+"ultimo": "2026-11-26 22:00",
+"nivel": 2.22,
+"vazao": null,
+"chuva24": 33.0,
+"chuva24_cob": 1.0,
+"variaveis": {
+"nivel": {
+"t": "2026-11-26T22:00",
+"valor": 2.22,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+},
+"vazao": null,
+"chuva": {
+"t": "2026-11-26T22:00",
+"valor": 0.0,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+}
+},
+"ok": true,
+"coleta_ok": true,
+"erro": null
+},
+{
+"cod": "40712600",
+"nome": "CGH Juliões jusante",
+"zona": "Z3",
+"papel": "chuva",
+"usada_chuva": true,
+"ultimo": "2026-11-26 22:00",
+"nivel": 1.4,
+"vazao": 9.4,
+"chuva24": 0.2,
+"chuva24_cob": 1.0,
+"variaveis": {
+"nivel": {
+"t": "2026-11-26T22:00",
+"valor": 1.4,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+},
+"vazao": {
+"t": "2026-11-26T22:00",
+"valor": 9.4,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+},
+"chuva": {
+"t": "2026-11-26T22:00",
+"valor": 0.0,
+"idade_h": 0.9,
+"cadencia_min": 60.0,
+"frescor": "atualizado"
+}
+},
+"ok": true,
+"coleta_ok": true,
+"erro": null
+},
+{
+"cod": "2043133",
+"nome": "Conselheiro Lafaiete (IGAM)",
+"zona": "Z1",
+"papel": "chuva",
+"usada_chuva": true,
+"ultimo": "2026-11-26 18:45",
+"nivel": null,
+"vazao": null,
+"chuva24": 0.4,
+"chuva24_cob": 0.5,
+"variaveis": {
+"nivel": null,
+"vazao": null,
+"chuva": {
+"t": "2026-11-26T18:45",
+"valor": 0.0,
+"idade_h": 4.15,
+"cadencia_min": 15.0,
+"frescor": "indisponivel"
+}
+},
+"ok": false,
+"coleta_ok": true,
+"erro": null
+}
+],
+"modelo_ok": true,
+"fonte_previsao": "Open-Meteo",
+"fonte_telemetria": "ANA telemetriaws1 (serviço legado)",
+"coleta_estacoes": {
+"40740000": {
+"ok": true,
+"erro": null
+},
+"40710001": {
+"ok": true,
+"erro": null
+},
+"40680001": {
+"ok": true,
+"erro": null
+},
+"40686000": {
+"ok": true,
+"erro": null
+},
+"40700050": {
+"ok": true,
+"erro": null
+},
+"40700080": {
+"ok": true,
+"erro": null
+},
+"40712500": {
+"ok": true,
+"erro": null
+},
+"40712000": {
+"ok": true,
+"erro": null
+},
+"40712600": {
+"ok": true,
+"erro": null
+},
+"2043013": {
+"ok": true,
+"erro": null
+},
+"2043133": {
+"ok": true,
+"erro": null
+}
+},
+"log": [
+"modelo_hist.json convertido para a convenção de início do intervalo"
+],
+"geracao_snapshot": "2026-11-26T22:54:32",
+"id_snapshot": "8caa56fd46eafe04"
+}
